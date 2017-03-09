@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Mappy</title>
+	<%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
+	<%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+	<%= csrf_meta_tags %>
+
+	<!-- alertify js -->
+	<script src="//cdn.jsdelivr.net/alertifyjs/1.6.1/alertify.min.js"></script>
+
+	<!-- alertify CSS -->
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/alertifyjs/1.6.1/css/alertify.min.css"/>
+
+	<!-- Default theme -->
+	<link rel="stylesheet" href="//cdn.jsdelivr.net/alertifyjs/1.6.1/css/themes/default.min.css"/>
+
+	<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAXdMOrKfVv95klzSFoZXmRC3QhUeQSTwo&libraries=drawing,places,geometry" type="text/javascript" >
+	</script>
+
+	<style type="text/css">
+	
+	 	html, body {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#map { 
+			height: 94%; 
+			width: 100%;
+			margin: 0;
+			padding: 0;
+		}
+
+		#geolocateUI, #clearMapUI {
+			background-color: #fff;
+			border: 2px solid #fff;
+			border-radius: 3px;
+			box-shadow: 0 2px 6px rgba(0,0,0,.3);
+			cursor: pointer;
+			float: left;
+			margin: 5px 10px 0 0;
+			text-align: center;
+		}
+
+		#geolocateText, #clearMapText {
+			color: rgb(25,25,25);
+			font-family: Roboto,Arial,sans-serif;
+			font-size: 15px;
+			line-height: 25px;
+			padding-left: 5px;
+			padding-right: 5px;
+		}
+
+		#clearMapUI {
+			margin-left: 12px;
+		}
+
+		.controls {
+			margin-top: 10px;
+			border: 1px solid transparent;
+			border-radius: 2px 0 0 2px;
+			box-sizing: border-box;
+			-moz-box-sizing: border-box;
+			height: 32px;
+			outline: none;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+		}
+
+		#pac-input {
+			background-color: #fff;
+			font-family: Roboto;
+			font-size: 15px;
+			font-weight: 300;
+			margin-left: 0px;
+			padding: 0 11px 0 13px;
+			text-overflow: ellipsis;
+			width: 300px;
+		}
+
+		#pac-input: focus {
+			border-color: #4d90fe;
+		}
+
+		.pac-container {
+			font-family: Roboto;
+		}
+
+		#type-selector {
+			color: #fff;
+			background-color: : #4d90fe;
+			padding: 5px 11px 0px 11px;
+		}
+
+		#type-selector label {
+			font-family: Roboto;
+			font-size: 13px;
+			font-weight: 300;
+		}
+
+		#panel, #flip, #info {
+		    padding: 15px;
+		    text-align: center;
+		    background-color: rgb(45, 49, 63);
+		    border: solid 1px #c3c3c3;
+			color: #fff;
+			font-family: Roboto,Arial,sans-serif;
+			font-size: 15px;	    
+		}
+
+		#panel {
+		    padding: 15px;
+		    display: none;
+		}
+
+/*		#info{
+			padding: 5px;
+		}*/
+
+
+	</style>
+</head>
+
+<body>
+
+
+	<div id="flip">Click here for more information about this website.</div>
+	<div id="panel">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
+	
+	<input id='pac-input' class='controls' type='text' placeholder='Search Box' style='border-radius:3px; background-color:#fff; visibility: hidden'>
+	<div id="map"></div>
+	<script type="text/javascript">
+
+
+	// default location and zooms
+	var _myLatitude = 36.068250;
+	var _myLongitude = -95.843579;
+	var _myZoom = 10;
+	var _myZoomGeoLocation = 17;
+	var _myDrawingManager;
+
+	var _myInfoWindow;
+
+
+	$(document).ready(function() {
+
+		if (document.getElementById('map')) {
+		    $("#flip").click(function(){
+		        $("#panel").slideToggle("slow");
+		    });
+
+		   	//////////////////////////////////////	
+			// Initializes search box
+			////////////////////////////////////////
+			function initSearchBoxControl() {
+
+				var input = document.getElementById('pac-input');
+				var searchBox = new google.maps.places.SearchBox(input);
+				map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+				map.addListener('bounds_changed', function() {
+					searchBox.setBounds(map.getBounds());
+				});
+
+				searchBox.addListener('places_changed', function() {
+					var places = searchBox.getPlaces();
+					if (places.length == 0) { return; }
+					clearMap();
+
+					// For each place, get the icon, name and location.
+					var bounds = new google.maps.LatLngBounds();
+					places.forEach(function(place) {
+						var icon = {
+							url: place.icon,
+							size: new google.maps.Size(71, 71),
+							origin: new google.maps.Point(0, 0),
+							anchor: new google.maps.Point(17, 34),
+							scaledSize: new google.maps.Size(25, 25)
+						};
+
+						// Create a marker for each place.
+						markers.push(new google.maps.Marker({
+							map: map,
+							icon: icon,
+							title: place.name,
+							position: place.geometry.location
+						}));
+
+					});
+
+					doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng())
+				})
+			};
+			//////////////////////////////////////	
+
+	  		// Create a map object and specify the DOM element for display.
+	  		var map = new google.maps.Map(document.getElementById('map'), {
+	    		center: {lat: _myLatitude, lng: _myLongitude},
+	    		scrollwheel: true,
+	    		zoom: _myZoom,
+	    		// scaleControl: true,
+	    		streetViewControl: false,
+	    		mapTypeId: 'terrain'
+  			});
+
+
+		  	(function() {
+		  		// drawing manager set up (drawing tools)
+		  		_myDrawingManager = new google.maps.drawing.DrawingManager({
+		  			drawingMode: google.maps.drawing.OverlayType.DEFAULT,
+		  			drawingControl: true,
+		  			drawingControlOptions: {
+		  			 	position: google.maps.ControlPosition.LEFT_TOP,
+		  				drawingModes: ['marker']
+		  				// drawingModes: ['polygon', 'circle', 'rectangle', 'marker']
+		  			}
+		  		});
+		  		_myDrawingManager.setMap(map);
+			})();
+
+			initSearchBoxControl();
+
+  			// var colorPolygonLayer = r360.googleMapsPolygonLayer(map);
+  			var markers = [];
+
+  			// Set up of custom button controls
+			var customControlsDiv = document.createElement('div');
+			var customControls = new initCustomControls(customControlsDiv, map);
+			customControlsDiv.index = 1;
+			customControlsDiv.style['padding-top'] = '10px';
+			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(customControlsDiv);
+
+			// var myIsochrone = r360.googleMapsPolygonLayer(map);
+
+	  		google.maps.event.addListener(_myDrawingManager, 'markercomplete', function(event) {
+	  				// remove marker the event automatically sets
+
+	  				event.setMap(null);
+	  				doIsochrone(event.getPosition().lat(), event.getPosition().lng())
+	  		});
+		};
+
+
+   	//////////////////////////////////////	
+	// Initializes search box
+	////////////////////////////////////////
+	function initSearchBoxControl() {
+
+		var input = document.getElementById('pac-input');
+		var searchBox = new google.maps.places.SearchBox(input);
+		map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+
+		map.addListener('bounds_changed', function() {
+			searchBox.setBounds(map.getBounds());
+		});
+
+		searchBox.addListener('places_changed', function() {
+			var places = searchBox.getPlaces();
+			if (places.length == 0) { return; }
+			clearMap();
+
+			// For each place, get the icon, name and location.
+			var bounds = new google.maps.LatLngBounds();
+			places.forEach(function(place) {
+				var icon = {
+					url: place.icon,
+					size: new google.maps.Size(71, 71),
+					origin: new google.maps.Point(0, 0),
+					anchor: new google.maps.Point(17, 34),
+					scaledSize: new google.maps.Size(25, 25)
+				};
+
+				// Create a marker for each place.
+				markers.push(new google.maps.Marker({
+					map: map,
+					icon: icon,
+					title: place.name,
+					position: place.geometry.location
+				}));
+
+			});
+
+			doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng())
+		})
+	};
+	//////////////////////////////////////	
+
+
+	// //////////////////////////////////////	
+	// // Generates isochrone
+	// //////////////////////////////////////	
+    function doIsochrone(lat, lng) {
+
+		$.ajax({
+			url:  "/check_region.json",
+			type: "POST",
+			data: {lat: lat, lng: lng}
+		}).done(function (result) {
+
+			if (result.result === true) {
+
+
+				// remove any marker in markers[]
+				if (markers.length > 0) {
+					for (var counter = 0; counter < markers.length; counter++) {
+						markers[counter].setMap(null);
+						markers.pop();
+					}
+				}
+
+				// create a new marker
+				var latlng = { lat: lat, lng: lng };
+				var marker = new google.maps.Marker({
+					position: latlng,
+					map: map
+				})
+			
+				// add marker to markers[] and set/create it on the map
+				markers.push(marker);
+				markers[0].setMap(map);
+
+				$.ajax({
+					url:  "/create_isochrone.json",
+					type: "POST",
+					data: {latitude: lat,
+						   longitude: lng,
+						   time: 180}
+				}).done(function (result) {
+
+
+					// clear map of previous map features
+					map.data.forEach(function(feature) {
+						map.data.remove(feature);
+					})
+					console.log("Area = " + result.area + " m^2")
+
+					// ====================================================================================
+					// is an iso is created, then the area will always be greater than zero
+					// once it is buffered
+					// ====================================================================================
+					if (result.area >= 0) {
+					// ====================================================================================
+					// ====================================================================================
+
+						// ============================================================
+						// this is the r360 generated isochrone
+						var numberIndicies = result.coordinates[0][0].length
+						var coords = []
+
+						for (n = 0; n < numberIndicies; n++) {
+							lat = result.coordinates[0][0][n][1]
+							lng = result.coordinates[0][0][n][0]
+							coords.push({lat: lat, lng: lng})
+						}
+
+						// define new polygon and add to map
+						var polygon_r360 = new google.maps.Data.Polygon([coords]);
+						// map.data.setStyle({
+						// 	strokeColor: '#4286f4',
+						// 	strokeOpacity: 0.8,
+						// 	strokeWeight: 2,
+						// 	fillColor: '#4286f4',
+						// 	fillOpacity: .3
+						// });
+
+						map.data.add({
+							geometry: polygon_r360
+						});
+						// ============================================================
+
+						// ============================================================
+						// this will only capture the outer ring of the buffer polygon
+						var buffer = [];
+						var length = result.buffer.length;
+						var flag = false;
+						for (n = 0; n < length; n++) {
+							split = result.buffer[n].split(" ")
+
+							if (split[0][0] !== "(" && !flag) {
+								lng = split[0];
+								lat = split[1];
+								buffer.push({lat: parseFloat(lat), lng: parseFloat(lng)})
+							} else {
+								flag = true
+							}
+						}
+
+						// define new polygon and add to map
+						var polygon_buffer = new google.maps.Data.Polygon([buffer]);
+						map.data.setStyle({
+							strokeColor: '#c43844',
+							strokeOpacity: 0.8,
+							strokeWeight: 2,
+							fillColor: '#f4d442',
+							fillOpacity: .3
+						});
+
+						map.data.add({
+							geometry: polygon_buffer
+						});
+						// ============================================================
+
+						// fit map to isochrone polygon
+						var bounds = new google.maps.LatLngBounds();
+						polygon_buffer.forEachLatLng(function (point) { 
+							bounds.extend(new google.maps.LatLng(point.lat(), point.lng()));
+						});
+			            map.fitBounds(bounds); 
+			            alertify.success("estimated demographics</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
+		            }
+		            else alertify.warning("Unable to calculate demographics");
+				});
+			} else {
+				alertify.error("Calculations only available within USA.  Please try again.")
+			}
+
+		});
+	
+	};
+	// //////////////////////////////////////	
+
+
+	//////////////////////////////
+	// Custom button controls set up
+	//////////////////////////////
+	function initCustomControls(controlDiv, map) {
+
+		// We set up a variable for this since we're adding event listeners later.
+		var control = this;
+
+		// Set CSS for the control border
+		var geolocateUI = document.createElement('div');
+		geolocateUI.id = 'geolocateUI';
+		geolocateUI.title = 'Click to geolocate on map';
+		controlDiv.appendChild(geolocateUI);
+
+		// Set CSS for the control interior
+		var geolocateText = document.createElement('div');
+		geolocateText.id = 'geolocateText';
+		geolocateText.innerHTML = 'Geolocate';
+		geolocateUI.appendChild(geolocateText);
+
+		// Click event for Geolocate
+		geolocateUI.addEventListener('click', function() {
+			var options = { timeout: 5000, enableHighAccuracy: true }
+			navigator.geolocation.getCurrentPosition(success, error, options)
+		});
+		//////////////////////////////
+
+
+		//////////////////////////////
+		// Clear Map
+		//////////////////////////////
+		var clearMapUI = document.createElement('div');
+		clearMapUI.id = 'clearMapUI';
+		clearMapUI.title = 'Click to clear map';
+		controlDiv.appendChild(clearMapUI);
+
+		// Set CSS for the control interior
+		var clearMapText = document.createElement('div');
+		clearMapText.id = 'clearMapText';
+		clearMapText.innerHTML = 'Clear Map';
+		clearMapUI.appendChild(clearMapText);
+
+		// Set up the click event listener for 'Set Center': Set the center of the
+		// control to the current center of the map.
+		clearMapUI.addEventListener('click', function() {
+			clearMap();
+		});
+		//////////////////////////////
+
+	};
+	//////////////////////////////
+
+
+
+
+
+
+	//////////////////////////////
+	/// clears map of infoWindow, Shapes and/or marker
+	function clearMap() {
+
+		// clear mafrkers
+		if (typeof markers !== 'undefined') {
+			for (counter = 0; counter < markers.length; counter++) {
+				markers[counter].setMap(null);
+			}
+			markers = [];
+		}
+
+		if (typeof colorPolygonLayer !== 'undefined') {
+			colorPolygonLayer.update("");
+		}
+	};
+	//////////////////////////////
+
+});
+	  	
+
+	</script>
+
+
+</body>
+</html>
