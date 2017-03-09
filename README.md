@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # README
 
 This README would normally document whatever steps are necessary to get the
@@ -22,3 +23,10 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+=======
+# mappy
+
+Google Maps / Isochrone (R360) / Census Data / Rails 5 / PostgreSQL / PostGIS
+
+Given a polygon on the map, calculate demographics
+>>>>>>> c5043d6b89742d2ba3d91a29d266ec16d9243859
