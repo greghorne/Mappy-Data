@@ -37,6 +37,7 @@ gem 'rest-client'
 gem 'pg'
 gem 'json'
 # gem 'rgeo/geo_json'
+gem 'alertifyjs-rails'
 
 
 group :development, :test do

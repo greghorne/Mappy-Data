@@ -84,16 +84,22 @@ class MapController < ApplicationController
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
 
-    puts "R360 Geom = " + geometry["type"].to_s
+puts ""
+puts "R360 Geom = " + geometry["type"].to_s
+puts ""
 
     # stringify JSON object then a couple of minor mainpulations for preparing to use in a db insert statement
     isochrone_r360 = geometry.to_s.gsub('"', '\'').gsub('=>', ':')
 
     # insert query string
-    db_insert = "insert into user_multi_polygon (geom) VALUES (ST_SetSRID(ST_GeomFromGeoJSON($1), 4269)) RETURNING id"
+    db_insert = "insert into " + insert_table.to_s + "  (geom) VALUES (ST_SetSRID(ST_GeomFromGeoJSON($1), 4269)) RETURNING id"
 
     conn = get_conn
+puts "insert r360"
     result_db_insert = conn.query(db_insert, [isochrone_r360])
+puts "inserted r360..."
+puts "..."
+puts ""
     conn.close
 
     # inserted row number
@@ -120,9 +126,17 @@ class MapController < ApplicationController
     # retrieve buffered geometry
     geometry = result_db_buffer[0]['st_buffer']
 
-    db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
+    # check the buffer geometry type; currently we are needing a polygon
+    buffer_geom_type = 'select ST_GeometryType($1)'
+    result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
+puts result_buffer_geom_type[0]['st_geometrytype']
 
+    db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
+puts "buffer insert"
     result_db_insert = conn.query(db_insert,[geometry])
+puts "buffer inserted..."
+puts "..."
+puts ""
     conn.close
 
     # inserted row number
