@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Mappy</title>
+	<title>MappyData</title>
 	<%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
 	<%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
 	<%= csrf_meta_tags %>
@@ -118,7 +118,7 @@
 
 
 	<div id="flip">Click here for more information about this website.</div>
-	<div id="panel">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</div>
+	<div id="panel">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>By clicking on the map with the marker tool, a 3 minute isochrone (drive-time) polygon is calculated using www.r360.net and is subsequently inserted into a PostGIS table to do a spatial calculation of the demographic counts.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The isochrone is also buffered and displayed onto the map.  Within the buffered isochrone is displayed the original isochrone and line work returned by Route360.</br></br>Tools / Components</br>Ruby - Rails - JS - Route360 - Google Maps API -  PostgreSQL/PostGIS</div>
 	
 	<input id='pac-input' class='controls' type='text' placeholder='Search Box' style='border-radius:3px; background-color:#fff; visibility: hidden'>
 	<div id="map"></div>
@@ -328,7 +328,7 @@
 					console.log("Area = " + result.area + " m^2")
 
 					// ====================================================================================
-					// is an iso is created, then the area will always be greater than zero
+					// if an isochrone is created, then the area will always be greater than zero
 					// once it is buffered
 					// ====================================================================================
 					if (result.area >= 0) {
@@ -399,7 +399,7 @@
 							bounds.extend(new google.maps.LatLng(point.lat(), point.lng()));
 						});
 			            map.fitBounds(bounds); 
-			            alertify.success("estimated demographics</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
+			            alertify.success("Estimated Demographics</br>(2010 Census Block)</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
 		            }
 		            else alertify.warning("Unable to calculate demographics");
 				});
@@ -466,8 +466,22 @@
 	//////////////////////////////
 
 
+	////////////////////////////////////////	
+	// Geolocation 'success' function
+	////////////////////////////////////////
+	function success(location) {
+		doIsochrone(location.coords.latitude, location.coords.longitude);
+	};
+	////////////////////////////////////////
+  	
 
-
+	////////////////////////////////////////
+	// Geolocation 'error' function
+	////////////////////////////////////////
+	function error(error) {
+		alert("Error: getCurrentPosition: " + error)
+	}
+	////////////////////////////////////////
 
 
 	//////////////////////////////
