@@ -2,9 +2,11 @@
 
 # mappy
 
-# Google Maps / Isochrone (R360) / Census Data / Rails 5 / PostgreSQL / PostGIS
+# deployment ==> https://mappydata.herokuapp.com
 
-Given a polygon on the map, calculate demographics
+# Google Maps API / Isochrone (Route360.net) / Census Data / Rub / Rails / JS / PostgreSQL / PostGIS
+
+Scope - Given a polygon on the map, calculate demographics.
 
 
 Components used for this project:
@@ -13,9 +15,10 @@ Components used for this project:
 * Rails 5.0.0
 * Google Maps API v3
 * REST Service - www.route360.net
-* 2010 Census Block Data (Population & Housing Counts)
+* 2010 Census Block Data - Population & Housing Counts
 * PostgreSQL/PostGIS
-
+* Raspberry Pi 2 - PG Server
+* Heroku deployment
 
 * System dependencies
 * Configuration
