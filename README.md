@@ -16,8 +16,8 @@ Components used for this project:
 * Google Maps API v3
 * REST Service - www.route360.net
 * 2010 Census Block Data - Population & Housing Counts
-* PostgreSQL/PostGIS
-* Raspberry Pi 2 - PG Server
+* PostgreSQL with PostGIS extension
+* Raspberry Pi 2 - PostgreSQL Server Host
 
 * System dependencies
 * Configuration
