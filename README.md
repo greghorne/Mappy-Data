@@ -1,13 +1,10 @@
-# README
-
 # mappy
-
-# deployment ==> https://mappydata.herokuapp.com
 
 # Google Maps API / Isochrone (Route360.net) / Census Data / Ruby / Rails / JS / PostgreSQL / PostGIS
 
-Scope - Given a polygon on the map, calculate demographics.
+deployment ==> https://mappydata.herokuapp.com
 
+Scope - Given a polygon on the map, calculate demographics.
 
 Components used for this project:
 
