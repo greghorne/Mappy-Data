@@ -1,6 +1,6 @@
 # mappy
 
-# Google Maps API / Isochrone (Route360.net) / Census Data / Ruby / Rails / JS / PostgreSQL / PostGIS
+Google Maps API / Isochrone (Route360.net) / Census Data / Ruby / Rails / JS / PostgreSQL / PostGIS
 
 deployment ==> https://mappydata.herokuapp.com
 
