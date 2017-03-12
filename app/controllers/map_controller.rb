@@ -95,11 +95,7 @@ puts ""
     db_insert = "insert into " + insert_table.to_s + "  (geom) VALUES (ST_SetSRID(ST_GeomFromGeoJSON($1), 4269)) RETURNING id"
 
     conn = get_conn
-puts "insert r360"
     result_db_insert = conn.query(db_insert, [isochrone_r360])
-puts "inserted r360..."
-puts "..."
-puts ""
     conn.close
 
     # inserted row number
@@ -129,21 +125,32 @@ puts ""
     # check the buffer geometry type; currently we are needing a polygon
     buffer_geom_type = 'select ST_GeometryType($1)'
     result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
-puts result_buffer_geom_type[0]['st_geometrytype']
+    polygon_type = result_buffer_geom_type[0]['st_geometrytype']
+puts
+puts "buffer type: " + polygon_type.to_s
+puts
+    target_table = ""
+    if polygon_type.to_s === "ST_Polygon"
+      target_table = insert_table
+    else
+      target_table = table_name_source
+    end
 
-    db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
-puts "buffer insert"
+    # db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
+    db_insert = 'insert into ' + target_table.to_s + ' (geom) Values($1) RETURNING id'
     result_db_insert = conn.query(db_insert,[geometry])
-puts "buffer inserted..."
-puts "..."
-puts ""
+puts
+puts "tarage_table: " + target_table.to_s
+puts
+
     conn.close
 
     # inserted row number
     row   = result_db_insert.first['id']
 
     return_hash = { :success          => true,
-                    :table_row_number => row
+                    :table_row_number => row,
+                    :table_name       => target_table
                   }
     
     return JSON.generate(return_hash)
@@ -180,8 +187,8 @@ puts ""
 
           # spatial select to calculate demographics
           row         = parsed["table_row_number"]
-          table_name  = "user_polygon"
-
+          # table_name  = "user_polygon"
+          table_name  = parsed["table_name"]
           db_query = 'select sum(housing10) housing10,' + 
                        'sum(st_area(st_intersection(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom))/st_area(tabblock_2010_pophu.geom) * housing10) as housing_calc, ' +
                        'sum(pop10) as pop10,' +
@@ -191,7 +198,11 @@ puts ""
           conn = get_conn
           result_db_query = conn.query(db_query, [row])
 
-          db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM user_polygon where id=$1;'
+          if table_name === "user_polygon"
+            db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM ' + table_name.to_s + ' where id=$1;'
+          else
+            db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),16) FROM ' + table_name.to_s + ' where id=$1;'
+          end
           result_db_query_buffer = conn.query(db_query_buffer, [row])
 
           conn.close
