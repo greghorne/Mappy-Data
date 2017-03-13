@@ -346,13 +346,15 @@
 			if (result.result === true) {
 
 
-				// remove any marker in markers[]
-				if (markers.length > 0) {
-					for (var counter = 0; counter < markers.length; counter++) {
-						markers[counter].setMap(null);
-						markers.pop();
-					}
-				}
+				// // remove any marker in markers[]
+				// if (markers.length > 0) {
+				// 	for (var counter = 0; counter < markers.length; counter++) {
+				// 		markers[counter].setMap(null);
+				// 		markers.pop();
+				// 	}
+				// }
+
+				clearMap();
 
 				// create a new marker
 				var latlng = { lat: lat, lng: lng };
@@ -381,7 +383,7 @@
 					map.data.forEach(function(feature) {
 						map.data.remove(feature);
 					})
-					console.log("Area = " + result.area / 1000000 + " km^2")
+					console.log("Area = " + Math.round(result.area / 1000000 * 100) / 100 + " km^2")
 
 					// ====================================================================================
 					// if an isochrone is created, then the area will always be greater than zero
