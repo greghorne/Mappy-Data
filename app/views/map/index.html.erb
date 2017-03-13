@@ -25,7 +25,7 @@
 			padding: 0;
 		}
 
-		#geolocateUI, #clearMapUI {
+		#geolocateUI, #clearMapUI, #changeDBServerUI {
 			background-color: #fff;
 			border: 2px solid #fff;
 			border-radius: 3px;
@@ -36,7 +36,7 @@
 			text-align: center;
 		}
 
-		#geolocateText, #clearMapText {
+		#geolocateText, #clearMapText, #changeDBServerUI {
 			color: rgb(25,25,25);
 			font-family: Roboto,Arial,sans-serif;
 			font-size: 15px;
@@ -252,39 +252,39 @@
 	function CenterControl(controlDiv, map) {
 
 	  // Set CSS for the control border.
-	  var controlUI = document.createElement('div');
-	  controlUI.style.backgroundColor = '#fff';
-	  controlUI.style.border = '2px solid #fff';
-	  controlUI.style.borderRadius = '3px';
-	  controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
-	  controlUI.style.cursor = 'pointer';
-	  controlUI.style.marginBottom = '22px';
-	  controlUI.style.textAlign = 'center';
-	  controlUI.title = 'Click to change DB server (RPI => slow; Zotac => less slow';
-	  controlDiv.appendChild(controlUI);
+	  // var controlUI = document.createElement('div');
+	  // controlUI.style.backgroundColor = '#fff';
+	  // controlUI.style.border = '2px solid #fff';
+	  // controlUI.style.borderRadius = '3px';
+	  // controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+	  // controlUI.style.cursor = 'pointer';
+	  // controlUI.style.marginBottom = '22px';
+	  // controlUI.style.textAlign = 'center';
+	  // controlUI.title = 'Click to change DB server (RPI => slow; Zotac => less slow';
+	  // controlDiv.appendChild(controlUI);
 
-	  // Set CSS for the control interior.
-	  var controlText = document.createElement('div');
-	  controlText.style.color = 'rgb(25,25,25)';
-	  controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
-	  controlText.style.fontSize = '14px';
-	  controlText.style.lineHeight = '38px';
-	  controlText.style.paddingLeft = '5px';
-	  controlText.style.paddingRight = '5px';
-	  controlText.innerHTML = 'Change DB Server';
-	  controlUI.appendChild(controlText);
+	  // // Set CSS for the control interior.
+	  // var controlText = document.createElement('div');
+	  // controlText.style.color = 'rgb(25,25,25)';
+	  // controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+	  // controlText.style.fontSize = '14px';
+	  // controlText.style.lineHeight = '38px';
+	  // controlText.style.paddingLeft = '5px';
+	  // controlText.style.paddingRight = '5px';
+	  // controlText.innerHTML = 'Change DB Server';
+	  // controlUI.appendChild(controlText);
 
 	  // Setup the click event listeners: simply set the map to Chicago.
-	  controlUI.addEventListener('click', function() {
-	    if (db_server_port === 2345) { 
-	    	db_server_port = 2346;
-	    	alertify.message("PostgreSQL Server is now set to:</br></br>Raspberry Pi (slowest)");
-	    } else {
-	    	db_server_port = 2345;
-	    	alertify.message("PostgreSQL Server is now set to:</br></br>Celeron (fastest)");
-	    }
-	    console.log("DB Port: " + db_server_port)
-	  });
+	  // controlUI.addEventListener('click', function() {
+	  //   if (db_server_port === 2345) { 
+	  //   	db_server_port = 2346;
+	  //   	alertify.message("PostgreSQL Server is now set to:</br></br>Raspberry Pi (slowest)");
+	  //   } else {
+	  //   	db_server_port = 2345;
+	  //   	alertify.message("PostgreSQL Server is now set to:</br></br>Celeron (fastest)");
+	  //   }
+	  //   console.log("DB Port: " + db_server_port)
+	  // });
 	}
 
    	//////////////////////////////////////	
@@ -381,7 +381,7 @@
 					map.data.forEach(function(feature) {
 						map.data.remove(feature);
 					})
-					console.log("Area = " + result.area + " m^2")
+					console.log("Area = " + result.area / 1000000 + " km^2")
 
 					// ====================================================================================
 					// if an isochrone is created, then the area will always be greater than zero
@@ -518,6 +518,31 @@
 		});
 		//////////////////////////////
 
+		//////////////////////////////
+		// Change DB Server
+		//////////////////////////////
+		var changeDBServerUI = document.createElement('div');
+		changeDBServerUI.id = 'changeDBServerUI';
+		changeDBServerUI.title = 'Change DB Server';
+		controlDiv.appendChild(changeDBServerUI);
+
+		// Set CSS for the control interior
+		var changeDBServerText = document.createElement('div');
+		changeDBServerText.id = 'changeDBServerText';
+		changeDBServerText.innerHTML = 'DB Server';
+		changeDBServerUI.appendChild(changeDBServerText);
+
+		changeDBServerUI.addEventListener('click', function() {
+		    if (db_server_port === 2345) { 
+		    	db_server_port = 2346;
+		    	alertify.message("PostgreSQL Server is now set to:</br></br>Raspberry Pi (slowest)");
+		    } else {
+		    	db_server_port = 2345;
+		    	alertify.message("PostgreSQL Server is now set to:</br></br>Celeron (fastest)");
+		    }
+		    // console.log("DB Port: " + db_server_port)
+		});
+		//////////////////////////////
 	};
 	//////////////////////////////
 
@@ -552,9 +577,9 @@
 			markers = [];
 		}
 
-		if (typeof colorPolygonLayer !== 'undefined') {
-			colorPolygonLayer.update("");
-		}
+		map.data.forEach(function(feature) {
+			map.data.remove(feature);
+		})
 	};
 	//////////////////////////////
 
