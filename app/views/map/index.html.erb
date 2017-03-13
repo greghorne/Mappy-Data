@@ -278,10 +278,10 @@
 	  controlUI.addEventListener('click', function() {
 	    if (db_server_port === 2345) { 
 	    	db_server_port = 2346;
-	    	alert("PostgreSQL Server set to ==> Raspberry Pi");
+	    	alertify.message("PostgreSQL Server is now set to:</br></br>Raspberry Pi (slowest)");
 	    } else {
 	    	db_server_port = 2345;
-	    	alert("PostgreSQL Server set to ==> Celeron");
+	    	alertify.message("PostgreSQL Server is now set to:</br></br>Celeron (fastest)");
 	    }
 	    console.log("DB Port: " + db_server_port)
 	  });
