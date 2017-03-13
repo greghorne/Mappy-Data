@@ -116,10 +116,11 @@
 
 
 	</style>
+
+
 </head>
 
 <body>
-
 
 	<div id="flip">Click here for more information about this website.</div>
 	<div id="panel">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS - <a style=color:yellow href= "https://www.route360.net" target="_blank">Route360</a> - Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==> <a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div>
@@ -137,6 +138,8 @@
 	var _myDrawingManager;
 
 	var _myInfoWindow;
+
+	var db_server_port = 2346
 
 
 	$(document).ready(function() {
@@ -185,10 +188,11 @@
 
 					});
 
-					doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng())
+					doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng(), db_server_port)
 				})
 			};
 			//////////////////////////////////////	
+
 
 	  		// Create a map object and specify the DOM element for display.
 	  		var map = new google.maps.Map(document.getElementById('map'), {
@@ -217,7 +221,6 @@
 
 			initSearchBoxControl();
 
-  			// var colorPolygonLayer = r360.googleMapsPolygonLayer(map);
   			var markers = [];
 
   			// Set up of custom button controls
@@ -227,16 +230,62 @@
 			customControlsDiv.style['padding-top'] = '10px';
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(customControlsDiv);
 
-			// var myIsochrone = r360.googleMapsPolygonLayer(map);
-
 	  		google.maps.event.addListener(_myDrawingManager, 'markercomplete', function(event) {
 	  				// remove marker the event automatically sets
 
 	  				event.setMap(null);
-	  				doIsochrone(event.getPosition().lat(), event.getPosition().lng())
+	  				doIsochrone(event.getPosition().lat(), event.getPosition().lng(), db_server_port)
 	  		});
 		};
 
+		// Create the DIV to hold the control and call the CenterControl()
+		// constructor passing in this DIV.
+		var centerControlDiv = document.createElement('div');
+		var centerControl = new CenterControl(centerControlDiv, map);
+
+		centerControlDiv.index = 1;
+		map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(centerControlDiv);
+
+
+
+
+	function CenterControl(controlDiv, map) {
+
+	  // Set CSS for the control border.
+	  var controlUI = document.createElement('div');
+	  controlUI.style.backgroundColor = '#fff';
+	  controlUI.style.border = '2px solid #fff';
+	  controlUI.style.borderRadius = '3px';
+	  controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+	  controlUI.style.cursor = 'pointer';
+	  controlUI.style.marginBottom = '22px';
+	  controlUI.style.textAlign = 'center';
+	  controlUI.title = 'Click to change DB server (RPI => slow; Zotac => less slow';
+	  controlDiv.appendChild(controlUI);
+
+	  // Set CSS for the control interior.
+	  var controlText = document.createElement('div');
+	  controlText.style.color = 'rgb(25,25,25)';
+	  controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+	  controlText.style.fontSize = '14px';
+	  controlText.style.lineHeight = '38px';
+	  controlText.style.paddingLeft = '5px';
+	  controlText.style.paddingRight = '5px';
+	  controlText.innerHTML = 'Change DB Server';
+	  controlUI.appendChild(controlText);
+
+	  // Setup the click event listeners: simply set the map to Chicago.
+	  controlUI.addEventListener('click', function() {
+	    if (db_server_port === 2345) { 
+	    	db_server_port = 2346;
+	    	alert("PostgreSQL Server set to ==> Raspberry Pi");
+	    } else {
+	    	db_server_port = 2345;
+	    	alert("PostgreSQL Server set to ==> Celeron");
+	    }
+	    console.log("DB Port: " + db_server_port)
+	  });
+	}
 
    	//////////////////////////////////////	
 	// Initializes search box
@@ -277,7 +326,7 @@
 
 			});
 
-			doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng())
+			doIsochrone(places[0].geometry.location.lat(), places[0].geometry.location.lng(), db_server_port)
 		})
 	};
 	//////////////////////////////////////	
@@ -286,12 +335,12 @@
 	// //////////////////////////////////////	
 	// // Generates isochrone
 	// //////////////////////////////////////	
-    function doIsochrone(lat, lng) {
+    function doIsochrone(lat, lng, db_server_port) {
 
 		$.ajax({
 			url:  "/check_region.json",
 			type: "POST",
-			data: {lat: lat, lng: lng}
+			data: {lat: lat, lng: lng, db_server_port: db_server_port}
 		}).done(function (result) {
 
 			if (result.result === true) {
@@ -316,12 +365,15 @@
 				markers.push(marker);
 				markers[0].setMap(map);
 
+				// if (typeof(db_server_port) === 'undefined') db_server_port = 2346;
+
 				$.ajax({
 					url:  "/create_isochrone.json",
 					type: "POST",
 					data: {latitude: lat,
 						   longitude: lng,
-						   time: 180}
+						   time: 180,
+							db_server_port: db_server_port}
 				}).done(function (result) {
 
 
@@ -474,7 +526,7 @@
 	// Geolocation 'success' function
 	////////////////////////////////////////
 	function success(location) {
-		doIsochrone(location.coords.latitude, location.coords.longitude);
+		doIsochrone(location.coords.latitude, location.coords.longitude, db_server_port);
 	};
 	////////////////////////////////////////
   	

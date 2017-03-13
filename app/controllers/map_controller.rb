@@ -5,10 +5,11 @@ require 'json'
 
 class MapController < ApplicationController
 
-  def get_conn
+  def get_conn(db_server_port)
     host      = ENV['MAPPY_DB_HOST']
     dbname    = ENV['MAPPY_DB']
-    port      = ENV['MAPPY_DB_PORT']
+    # port      = ENV['MAPPY_DB_PORT']
+    port      = db_server_port
     user      = ENV['MAPPY_DB_USER']
     password  = ENV['MAPPY_DB_PASSWORD']
     
@@ -19,7 +20,7 @@ class MapController < ApplicationController
       :user => user,
       :password => password
     )
-
+puts "DB Port: " + port.to_s
     return conn
   end
 
@@ -28,8 +29,9 @@ class MapController < ApplicationController
 
     lat = params[:lat].to_f
     lng = params[:lng].to_f
-
-    conn = get_conn
+    db_server_port = params[:db_server_port].to_i
+puts db_server_port
+    conn = get_conn(db_server_port)
 
     # insert x,y into table
     insert = "insert into user_point (name, geom) VALUES ('', ST_GeomFromText('Point(" + lng.to_s + " " + lat.to_s + ")', 4269)) RETURNING id"
@@ -66,7 +68,7 @@ class MapController < ApplicationController
   end
 
 
-  def do_r360_iso(latitude_y, longitude_x, time, region, insert_table)
+  def do_r360_iso(latitude_y, longitude_x, time, region, insert_table, db_server_port)
 
     r360_key = ENV['MAPPY_R360_KEY']
 
@@ -94,7 +96,7 @@ puts ""
     # insert query string
     db_insert = "insert into " + insert_table.to_s + "  (geom) VALUES (ST_SetSRID(ST_GeomFromGeoJSON($1), 4269)) RETURNING id"
 
-    conn = get_conn
+    conn = get_conn(db_server_port)
     result_db_insert = conn.query(db_insert, [isochrone_r360])
     conn.close
 
@@ -111,12 +113,12 @@ puts ""
   end
 
 
-  def do_buffer(buffer, row, table_name_source, insert_table)
+  def do_buffer(buffer, row, table_name_source, insert_table, db_server_port)
     
     # create buffer on geom
     db_buffer = 'Select ST_Buffer(geom, $1) from ' + table_name_source.to_s + ' where id = $2'
 
-    conn = get_conn
+    conn = get_conn(db_server_port)
     result_db_buffer = conn.query(db_buffer, [buffer, row])
 
     # retrieve buffered geometry
@@ -163,6 +165,7 @@ puts
     latitude_y = params[:latitude].to_f
     longitude_x = params[:longitude].to_f
     time = params[:time].to_i     # in seconds
+    db_server_port = params[:db_server_port].to_i
 
     # determine region of usa using x,y
     region = getRegion(latitude_y, longitude_x)
@@ -170,7 +173,7 @@ puts
     if (region)
 
       # create isochrone using r360
-      result_r360 = do_r360_iso(latitude_y, longitude_x, time, region, "user_multi_polygon")
+      result_r360 = do_r360_iso(latitude_y, longitude_x, time, region, "user_multi_polygon", db_server_port)
       parsed = JSON.parse(result_r360.to_s)
 
       if parsed["success"] 
@@ -179,7 +182,7 @@ puts
         area      = parsed["area"]
         row       = parsed["table_row_number"]
 
-        result_buffer = do_buffer(0.0009, row, "user_multi_polygon", "user_polygon")
+        result_buffer = do_buffer(0.0009, row, "user_multi_polygon", "user_polygon", db_server_port)
 
         parsed = JSON.parse(result_buffer.to_s)
 
@@ -195,7 +198,7 @@ puts
                        'sum(st_area(st_intersection(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom))/st_area(tabblock_2010_pophu.geom) * pop10) as pop_calc ' + 
                        'from tabblock_2010_pophu, ' + table_name.to_s + ' where ' + table_name.to_s + '.id = $1 and ST_INTERSECTS(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom)'
 
-          conn = get_conn
+          conn = get_conn(db_server_port)
           result_db_query = conn.query(db_query, [row])
 
           if table_name === "user_polygon"
