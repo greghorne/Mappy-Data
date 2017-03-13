@@ -492,10 +492,10 @@
 		changeDBServerUI.addEventListener('click', function() {
 		    if (db_server_port === 2345) { 
 		    	db_server_port = 2346;
-		    	alertify.message("PostgreSQL Server is now set to:</br></br>Raspberry Pi (slowest)");
+		    	alertify.alert("PostgreSQL Server is now set to:</br></br><a href='https://www.raspberrypi.org/products/raspberry-pi-2-model-b/' target='_blank'>Raspberry Pi 2 - Raspbian</a> (slowest)");
 		    } else {
 		    	db_server_port = 2345;
-		    	alertify.message("PostgreSQL Server is now set to:</br></br>Celeron (fastest)");
+		    	alertify.alert("PostgreSQL Server is now set to:</br></br><a href='https://www.zotac.com/us/product/mini_pcs/bi320-windows-81-bing-0' target='_blank'>Zotac BI320 - Ubuntu</a> (fastest)");
 		    }
 		    // console.log("DB Port: " + db_server_port)
 		});
