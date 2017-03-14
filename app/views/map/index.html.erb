@@ -19,13 +19,13 @@
 		}
 
 		#map { 
-			height: 94%; 
+			height: 100%; 
 			width: 100%;
 			margin: 0;
 			padding: 0;
 		}
 
-		#geolocateUI, #clearMapUI, #changeDBServerUI {
+		#geolocateUI, #clearMapUI, #changeDBServerUI, #fyiUI {
 			background-color: #fff;
 			border: 2px solid #fff;
 			border-radius: 3px;
@@ -36,7 +36,7 @@
 			text-align: center;
 		}
 
-		#geolocateText, #clearMapText, #changeDBServerUI {
+		#geolocateText, #clearMapText, #changeDBServerText, #fyiUI {
 			color: rgb(25,25,25);
 			font-family: Roboto,Arial,sans-serif;
 			font-size: 15px;
@@ -45,9 +45,9 @@
 			padding-right: 5px;
 		}
 
-		#clearMapUI {
+/*		#clearMapUI {
 			margin-left: 12px;
-		}
+		}*/
 
 		.controls {
 			margin-top: 10px;
@@ -103,6 +103,7 @@
 
 		#flip {
 			color:orange;
+			cursor:pointer
 		}
 
 		#panel {
@@ -113,6 +114,57 @@
 /*		#info{
 			padding: 5px;
 		}*/
+		.overlay {
+		    height: 0%;
+		    width: 100;
+		    position: fixed;
+		    z-index: 1;
+		    top: 0;
+		    left: 0;
+		    background-color: rgb(241,241,241);
+		    background-color: rgba(0,0,0, 0.7);
+		    overflow-x: hidden;
+		    transition: 1s;
+		    font-family: 'Lato', sans-serif;
+		}
+
+		.overlay-content {
+		    position: relative;
+		    top: 25%;
+		    width: 100%;
+		    text-align: center;
+		    margin-top: 30px;
+		    color: white;
+		}
+
+		.overlay a {
+		    padding: 8px;
+		    text-decoration: none;
+		    /*font-size: 36px;*/
+		    color: #818181;
+		    /*display: block;*/
+		    transition: 0.1s;
+		}
+
+		.overlay a:hover, .overlay a:focus {
+		    color: #f1f1f1;
+		}
+
+		.overlay .closebtn {
+		    position: absolute;
+		    top: 20px;
+		    right: 45px;
+		    font-size: 60px;
+		}
+
+		@media screen and (max-height: 450px) {
+		  .overlay a {font-size: 20px}
+		  .overlay .closebtn {
+		    font-size: 40px;
+		    top: 15px;
+		    right: 35px;
+		  }
+		}
 
 
 	</style>
@@ -122,18 +174,33 @@
 
 <body>
 
-	<div id="flip">Click here for more information about this website.</div>
-	<div id="panel">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS - <a style=color:yellow href= "https://www.route360.net" target="_blank">Route360</a> - Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==> <a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div>
+	<!-- <div id='flip'>Click here for more information about this website.</div> -->
+	<div id="myNav" class="overlay"><a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a><div class="overlay-content">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS - <a style=color:yellow href= "https://www.route360.net" target="_blank">Route360</a>- Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==> <a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div></div>
+
+<!-- 	<div id="myNav" class="overlay">
+  		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+  		<div class="overlay-content">
+			This is some text to test with.
+  		</div>
+	</div> -->
 	
 	<input id='pac-input' class='controls' type='text' placeholder='Search Box' style='border-radius:3px; background-color:#fff; visibility: hidden'>
 	<div id="map"></div>
 	<script type="text/javascript">
 
 
+	function openNav() {
+	    document.getElementById("myNav").style.height = "100%";
+	}
+
+	function closeNav() {
+	    document.getElementById("myNav").style.height = "0%";
+	}
+
 	// default location and zooms
 	var _myLatitude = 36.068250;
 	var _myLongitude = -95.843579;
-	var _myZoom = 4;
+	var _myZoom = 5;
 	var _myZoomGeoLocation = 17;
 	var _myDrawingManager;
 
@@ -145,8 +212,9 @@
 	$(document).ready(function() {
 
 		if (document.getElementById('map')) {
-		    $("#flip").click(function(){
-		        $("#panel").slideToggle("slow");
+		    $('#flip').click(function(){
+		        // $("#panel").slideToggle("slow");
+		        openNav();
 		    });
 
 		   	//////////////////////////////////////	
@@ -500,6 +568,28 @@
 		    // console.log("DB Port: " + db_server_port)
 		});
 		//////////////////////////////
+
+		//////////////////////////////
+		// Clear Map
+		//////////////////////////////
+		var fyiUI = document.createElement('div');
+		fyiUI.id = 'fyiUI';
+		fyiUI.title = 'Click for information on this website';
+		controlDiv.appendChild(fyiUI);
+
+		// Set CSS for the control interior
+		var fyiText = document.createElement('div');
+		fyiText.id = 'fyiText';
+		fyiText.innerHTML = '?';
+		fyiUI.appendChild(fyiText);
+
+		// Set up the click event listener for 'Set Center': Set the center of the
+		// control to the current center of the map.
+		fyiUI.addEventListener('click', function() {
+			openNav();
+		});
+		//////////////////////////////
+
 	};
 	//////////////////////////////
 
