@@ -170,6 +170,11 @@
 		  }
 		}
 
+		#overlay-spinner {
+			height: 100%;
+			width: 100%;
+		}
+
 
 	</style>
 
@@ -207,8 +212,32 @@
 
 
 	$(document).ready(function() {
-
 		if (document.getElementById('map')) {
+
+			var opts = {
+				lines: 13 // The number of lines to draw
+				, length: 28 // The length of each line
+				, width: 14 // The line thickness
+				, radius: 42 // The radius of the inner circle
+				, scale: .5 // Scales overall size of the spinner
+				, corners: 1 // Corner roundness (0..1)
+				, color: '#000' // #rgb or #rrggbb or array of colors
+				, opacity: 0.25 // Opacity of the lines
+				, rotate: 0 // The rotation offset
+				, direction: 1 // 1: clockwise, -1: counterclockwise
+				, speed: 1 // Rounds per second
+				, trail: 60 // Afterglow percentage
+				, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+				, zIndex: 2e9 // The z-index (defaults to 2000000000)
+				, className: 'spinner' // The CSS class to assign to the spinner
+				, top: '50%' // Top position relative to parent
+				, left: '50%' // Left position relative to parent
+				, shadow: false // Whether to render a shadow
+				, hwaccel: false // Whether to use hardware acceleration
+				, position: 'absolute' // Element positioning
+			}
+			var target = document.getElementById('map')
+
 
 		   	//////////////////////////////////////	
 			// Initializes search box
@@ -358,6 +387,7 @@
 	// //////////////////////////////////////	
     function doIsochrone(lat, lng, db_server_port) {
 
+		var spinner = new Spinner(opts).spin(target);
 		$.ajax({
 			url:  "/check_region.json",
 			type: "POST",
@@ -464,14 +494,18 @@
 						});
 			            map.fitBounds(bounds); 
 			            alertify.success("Estimated Demographics</br>(2010 Census Block)</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
+			            spinner.stop()
 		            }
 		            else alertify.warning("Unable to calculate demographics");
+		            spinner.stop()
 				});
 			} else {
 				alertify.error("Calculations only available within USA.  Please try again.")
+				spinner.stop()
 			}
 
 		});
+
 	
 	};
 	// //////////////////////////////////////	
@@ -508,7 +542,7 @@
 		// Set CSS for the control border
 		var geolocateUI = document.createElement('img');
 		geolocateUI.id = 'geolocateUI';
-		geolocateUI.title = 'Click to geolocate my position';
+		geolocateUI.title = 'Click to geolocate my location';
 		geolocateUI.src = "/assets/map.png"
 		controlDiv.appendChild(geolocateUI);
 
