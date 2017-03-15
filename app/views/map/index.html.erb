@@ -25,7 +25,7 @@
 			padding: 0;
 		}
 
-		#geolocateUI, #clearMapUI, #changeDBServerUI, #fyiUI {
+		#geolocateUI, #clearMapUI, #changeDBServerUI, #fyiUI, #attributionUI {
 			background-color: #fff;
 			border: 2px solid #fff;
 			border-radius: 3px;
@@ -36,13 +36,17 @@
 			text-align: center;
 		}
 
-		#geolocateText, #clearMapText, #changeDBServerText, #fyiUI {
+		#geolocateText, #clearMapText, #changeDBServerText, #fyiText, #attributionText {
 			color: rgb(25,25,25);
 			font-family: Roboto,Arial,sans-serif;
-			font-size: 15px;
+			font-size: 12px;
 			line-height: 25px;
 			padding-left: 5px;
 			padding-right: 5px;
+		}
+
+		#attributionUI {
+			/*background-image: url("/assets/help.png")*/
 		}
 
 /*		#clearMapUI {
@@ -141,7 +145,7 @@
 		    padding: 8px;
 		    text-decoration: none;
 		    /*font-size: 36px;*/
-		    color: #818181;
+		    color: #686868;
 		    /*display: block;*/
 		    transition: 0.1s;
 		}
@@ -175,15 +179,8 @@
 <body>
 
 	<!-- <div id='flip'>Click here for more information about this website.</div> -->
-	<div id="myNav" class="overlay"><a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a><div class="overlay-content">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS -<a style=color:yellow href= "https://www.route360.net" target="_blank">Route360</a>- Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==><a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div></div>
+	<div id="myNav" class="overlay" onclick="closeNav();"><a class="closebtn" onclick="closeNav();">&times;</a><div class="overlay-content">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS -<a style=color:yellow href= "https://www.route360.net" target="_blank">Route360&deg</a>- Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==><a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div></div>
 
-<!-- 	<div id="myNav" class="overlay">
-  		<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-  		<div class="overlay-content">
-			This is some text to test with.
-  		</div>
-	</div> -->
-	
 	<input id='pac-input' class='controls' type='text' placeholder='Search Box' style='border-radius:3px; background-color:#fff; visibility: hidden'>
 	<div id="map"></div>
 	<script type="text/javascript">
@@ -194,6 +191,7 @@
 	}
 
 	function closeNav() {
+		console.log("closeNav...")
 	    document.getElementById("myNav").style.height = "0%";
 	}
 
@@ -212,10 +210,6 @@
 	$(document).ready(function() {
 
 		if (document.getElementById('map')) {
-		    $('#flip').click(function(){
-		        // $("#panel").slideToggle("slow");
-		        openNav();
-		    });
 
 		   	//////////////////////////////////////	
 			// Initializes search box
@@ -503,16 +497,17 @@
 		var control = this;
 
 		// Set CSS for the control border
-		var geolocateUI = document.createElement('div');
+		var geolocateUI = document.createElement('img');
 		geolocateUI.id = 'geolocateUI';
-		geolocateUI.title = 'Click to geolocate on map';
+		geolocateUI.title = 'Click to geolocate my position';
+		geolocateUI.src = "/assets/map.png"
 		controlDiv.appendChild(geolocateUI);
 
 		// Set CSS for the control interior
-		var geolocateText = document.createElement('div');
-		geolocateText.id = 'geolocateText';
-		geolocateText.innerHTML = 'Geolocate';
-		geolocateUI.appendChild(geolocateText);
+		// var geolocateText = document.createElement('div');
+		// geolocateText.id = 'geolocateText';
+		// geolocateText.innerHTML = 'Geolocate';
+		// geolocateUI.appendChild(geolocateText);
 
 		// Click event for Geolocate
 		geolocateUI.addEventListener('click', function() {
@@ -525,16 +520,17 @@
 		//////////////////////////////
 		// Clear Map
 		//////////////////////////////
-		var clearMapUI = document.createElement('div');
+		var clearMapUI = document.createElement('img');
 		clearMapUI.id = 'clearMapUI';
 		clearMapUI.title = 'Click to clear map';
+		clearMapUI.src = "/assets/edit_clear.png"
 		controlDiv.appendChild(clearMapUI);
 
 		// Set CSS for the control interior
-		var clearMapText = document.createElement('div');
-		clearMapText.id = 'clearMapText';
-		clearMapText.innerHTML = 'Clear Map';
-		clearMapUI.appendChild(clearMapText);
+		// var clearMapText = document.createElement('div');
+		// clearMapText.id = 'clearMapText';
+		// clearMapText.innerHTML = 'Clear Map';
+		// clearMapUI.appendChild(clearMapText);
 
 		// Set up the click event listener for 'Set Center': Set the center of the
 		// control to the current center of the map.
@@ -546,16 +542,17 @@
 		//////////////////////////////
 		// Change DB Server
 		//////////////////////////////
-		var changeDBServerUI = document.createElement('div');
+		var changeDBServerUI = document.createElement('img');
 		changeDBServerUI.id = 'changeDBServerUI';
 		changeDBServerUI.title = 'Change DB Server';
+		changeDBServerUI.src = "/assets/database_refresh.png"
 		controlDiv.appendChild(changeDBServerUI);
 
 		// Set CSS for the control interior
-		var changeDBServerText = document.createElement('div');
-		changeDBServerText.id = 'changeDBServerText';
-		changeDBServerText.innerHTML = 'DB Server';
-		changeDBServerUI.appendChild(changeDBServerText);
+		// var changeDBServerText = document.createElement('div');
+		// changeDBServerText.id = 'changeDBServerText';
+		// changeDBServerText.innerHTML = 'DB Server';
+		// changeDBServerUI.appendChild(changeDBServerText);
 
 		changeDBServerUI.addEventListener('click', function() {
 		    if (db_server_port === 2345) { 
@@ -570,21 +567,15 @@
 		//////////////////////////////
 
 		//////////////////////////////
-		// Clear Map
+		// FYI
 		//////////////////////////////
-		var fyiUI = document.createElement('div');
+		var fyiUI = document.createElement('img');
 		fyiUI.id = 'fyiUI';
 		fyiUI.title = 'Click for information on this website';
+		fyiUI.src = "/assets/help.png"
+		// fyiUI.border-radius = "100px"
 		controlDiv.appendChild(fyiUI);
 
-		// Set CSS for the control interior
-		var fyiText = document.createElement('div');
-		fyiText.id = 'fyiText';
-		fyiText.innerHTML = '?';
-		fyiUI.appendChild(fyiText);
-
-		// Set up the click event listener for 'Set Center': Set the center of the
-		// control to the current center of the map.
 		fyiUI.addEventListener('click', function() {
 			openNav();
 		});
@@ -607,7 +598,7 @@
 	// Geolocation 'error' function
 	////////////////////////////////////////
 	function error(error) {
-		alert("Error: getCurrentPosition: " + error + " (HTTPS required for this function)")
+		alertify.error("Unable to determine your Geolocation")
 	}
 	////////////////////////////////////////
 
