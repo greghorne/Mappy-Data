@@ -179,7 +179,7 @@
 <body>
 
 	<!-- <div id='flip'>Click here for more information about this website.</div> -->
-	<div id="myNav" class="overlay" onclick="closeNav();"><a class="closebtn" onclick="closeNav();">&times;</a><div class="overlay-content">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS -<a style=color:yellow href= "https://www.route360.net" target="_blank">Route360&deg</a>- Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==><a style=color:yellow href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div></div>
+	<div id="myNav" class="overlay" onclick="closeNav();"><a class="closebtn" onclick="closeNav();">&times;</a><div class="overlay-content">Given a polygon on the map, calculate and display population and housing counts based on 2010 U.S. Census Blocks.</br></br>Tools / Components</br>Ruby - Rails - JS -<a style=color:#27d84d href= "https://www.route360.net" target="_blank">Route360&deg</a>- Google Maps API - PostgreSQL/PostGIS - 2010 USA Census Data</br></br>By clicking on the map with the marker tool (upper left), a 3 minute isochrone (drive-time) polygon is calculated using Route360 REST Services and is subsequently inserted into a PostgreSQL/PostGIS table.  The isochrone polygon is then buffered and used to do a spatial query in PostgreSQL to determine intersection of the buffered isochrone polygon against census block data.</br></br>Uniform distribution of population and housing counts are assumed within a census block.</br></br>The buffered polygon is then displayed on the map.  Within the buffered polygon is also displayed the original Route360 returned isochrone polygon(s) and line work.</br> (cool stuff, check them out ==><a style=color:#27d84d href="https://www.route360.net" target="_blank">Route360.net</a>)</br></br>PostgreSQL is hosted on a Raspberry Pi 2 board running Raspbian 8 (Jessie).  The Census Block table in the database contains over 11 millions records covering the entire United States.</br></br>PostgreSQL queries executed on the Raspberry Pi 2 is a known speed bottleneck for this application.  I used the Raspberry Pi for my own amusement.</br></br>This website is deployed on Heroku using a free dyno</br></br>This website is still a work in progress.  There are known issues that will be addressed, maybe some enhancements.  This website is for demonstration purposes.  Thanks for visiting.</br></br><a style=color:yellow href="https://github.com/greghorne/mappy" target="_blank">GitHub Repository</a></div></div>
 
 	<input id='pac-input' class='controls' type='text' placeholder='Search Box' style='border-radius:3px; background-color:#fff; visibility: hidden'>
 	<div id="map"></div>
@@ -191,7 +191,6 @@
 	}
 
 	function closeNav() {
-		console.log("closeNav...")
 	    document.getElementById("myNav").style.height = "0%";
 	}
 
@@ -293,6 +292,12 @@
 			customControlsDiv.style['padding-top'] = '10px';
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(customControlsDiv);
 
+			var attributionControlDiv = document.createElement('div');
+			var attributionControl = new initAttributionControl(attributionControlDiv, map);
+			attributionControlDiv.index = 1;
+			attributionControlDiv.style['padding-bottom'] = '10px';
+			map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(attributionControlDiv, map)
+
 	  		google.maps.event.addListener(_myDrawingManager, 'markercomplete', function(event) {
 	  				// remove marker the event automatically sets
 
@@ -300,6 +305,7 @@
 	  				doIsochrone(event.getPosition().lat(), event.getPosition().lng(), db_server_port)
 	  		});
 		};
+
 
 
    	//////////////////////////////////////	
@@ -360,15 +366,6 @@
 
 			if (result.result === true) {
 
-
-				// // remove any marker in markers[]
-				// if (markers.length > 0) {
-				// 	for (var counter = 0; counter < markers.length; counter++) {
-				// 		markers[counter].setMap(null);
-				// 		markers.pop();
-				// 	}
-				// }
-
 				clearMap();
 
 				// create a new marker
@@ -384,8 +381,6 @@
 				markers.push(marker);
 				markers[0].setMap(map);
 
-				// if (typeof(db_server_port) === 'undefined') db_server_port = 2346;
-
 				$.ajax({
 					url:  "/create_isochrone.json",
 					type: "POST",
@@ -400,7 +395,7 @@
 					map.data.forEach(function(feature) {
 						map.data.remove(feature);
 					})
-					console.log("Area = " + Math.round(result.area / 1000000 * 100) / 100 + " km^2")
+					// console.log("Area = " + Math.round(result.area / 1000000 * 100) / 100 + " km^2")
 
 					// ====================================================================================
 					// if an isochrone is created, then the area will always be greater than zero
@@ -423,13 +418,6 @@
 
 						// define new polygon and add to map
 						var polygon_r360 = new google.maps.Data.Polygon([coords]);
-						// map.data.setStyle({
-						// 	strokeColor: '#4286f4',
-						// 	strokeOpacity: 0.8,
-						// 	strokeWeight: 2,
-						// 	fillColor: '#4286f4',
-						// 	fillOpacity: .3
-						// });
 
 						map.data.add({
 							geometry: polygon_r360
@@ -438,6 +426,7 @@
 
 						// ============================================================
 						// this will only capture the outer ring of the buffer polygon
+						// meaning at the moment multi-polygons and donuts are skipped
 						var buffer = [];
 						var length = result.buffer.length;
 						var flag = false;
@@ -488,13 +477,33 @@
 	// //////////////////////////////////////	
 
 
+   	//////////////////////////////////////	
+	// Initializes search box
+	////////////////////////////////////////
+	function initAttributionControl(control, map) {
+		var attribution = document.createElement('img');
+		attribution.id = 'attribution';
+		attribution.title = 'Credit: Route360°';
+		attribution.src = "/assets/route360_logo.svg";
+		attribution.width = "56";
+		attribution.height = "56";
+		attribution.style.cursor = "pointer"
+		control.appendChild(attribution);
+
+		attribution.addEventListener('click', function() {
+			window.open("https://www.route360.net")
+		});
+	}
+	//////////////////////////////////////	
+
+
 	//////////////////////////////
 	// Custom button controls set up
 	//////////////////////////////
 	function initCustomControls(controlDiv, map) {
 
 		// We set up a variable for this since we're adding event listeners later.
-		var control = this;
+		// var controlDiv = this;
 
 		// Set CSS for the control border
 		var geolocateUI = document.createElement('img');
@@ -526,14 +535,6 @@
 		clearMapUI.src = "/assets/edit_clear.png"
 		controlDiv.appendChild(clearMapUI);
 
-		// Set CSS for the control interior
-		// var clearMapText = document.createElement('div');
-		// clearMapText.id = 'clearMapText';
-		// clearMapText.innerHTML = 'Clear Map';
-		// clearMapUI.appendChild(clearMapText);
-
-		// Set up the click event listener for 'Set Center': Set the center of the
-		// control to the current center of the map.
 		clearMapUI.addEventListener('click', function() {
 			clearMap();
 		});
@@ -548,12 +549,6 @@
 		changeDBServerUI.src = "/assets/database_refresh.png"
 		controlDiv.appendChild(changeDBServerUI);
 
-		// Set CSS for the control interior
-		// var changeDBServerText = document.createElement('div');
-		// changeDBServerText.id = 'changeDBServerText';
-		// changeDBServerText.innerHTML = 'DB Server';
-		// changeDBServerUI.appendChild(changeDBServerText);
-
 		changeDBServerUI.addEventListener('click', function() {
 		    if (db_server_port === 2345) { 
 		    	db_server_port = 2346;
@@ -562,7 +557,6 @@
 		    	db_server_port = 2345;
 		    	alertify.alert("<center>MappyData</center>", "<center>PostgreSQL/PostGIS Database Server is now set to:</br></br><a href='https://www.zotac.com/us/product/mini_pcs/bi320-windows-81-bing-0' target='_blank'>Zotac BI320 - Ubuntu</a> (fastest option)<center>");
 		    }
-		    // console.log("DB Port: " + db_server_port)
 		});
 		//////////////////////////////
 
@@ -573,7 +567,6 @@
 		fyiUI.id = 'fyiUI';
 		fyiUI.title = 'Click for information on this website';
 		fyiUI.src = "/assets/help.png"
-		// fyiUI.border-radius = "100px"
 		controlDiv.appendChild(fyiUI);
 
 		fyiUI.addEventListener('click', function() {

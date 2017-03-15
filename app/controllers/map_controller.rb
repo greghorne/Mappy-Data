@@ -20,7 +20,7 @@ class MapController < ApplicationController
       :user => user,
       :password => password
     )
-puts "DB Port: " + port.to_s
+    # puts "DB Port: " + port.to_s
     return conn
   end
 
@@ -86,9 +86,9 @@ puts db_server_port
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
 
-puts ""
-puts "R360 Geom = " + geometry["type"].to_s
-puts ""
+    # puts ""
+    # puts "R360 Geom = " + geometry["type"].to_s
+    # puts ""
 
     # stringify JSON object then a couple of minor mainpulations for preparing to use in a db insert statement
     isochrone_r360 = geometry.to_s.gsub('"', '\'').gsub('=>', ':')
@@ -128,9 +128,9 @@ puts ""
     buffer_geom_type = 'select ST_GeometryType($1)'
     result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
     polygon_type = result_buffer_geom_type[0]['st_geometrytype']
-puts
-puts "buffer type: " + polygon_type.to_s
-puts
+    # puts
+    # puts "buffer type: " + polygon_type.to_s
+    # puts
     target_table = ""
     if polygon_type.to_s === "ST_Polygon"
       target_table = insert_table
@@ -141,9 +141,9 @@ puts
     # db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
     db_insert = 'insert into ' + target_table.to_s + ' (geom) Values($1) RETURNING id'
     result_db_insert = conn.query(db_insert,[geometry])
-puts
-puts "tarage_table: " + target_table.to_s
-puts
+    # puts
+    # puts "tarage_table: " + target_table.to_s
+    # puts
 
     conn.close
 
