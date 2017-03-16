@@ -498,11 +498,12 @@
 						SWlng = bounds.getSouthWest().lng();
 						if (isNaN(NElat) || isNaN(NElng) || isNaN(SWlat) || isNaN(SWlng)) {
 							alertify.error("Error: unable to calculate buffer/geometry/demographics")
+							map.setZoom(14)
 						} else {
 				            map.fitBounds(bounds); 
 				            alertify.success("Estimated Demographics</br>(2010 Census Block)</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
 			        	}
-			        	map.setZoom(14)
+
 			            spinner.stop()
 		            }
 		            else alertify.warning("Unable to calculate demographics");
