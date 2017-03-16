@@ -322,7 +322,7 @@
 			map.controls[google.maps.ControlPosition.TOP_RIGHT].push(customControlsDiv);
 
 			var attributionControlDiv = document.createElement('div');
-			var attributionControl = new initAttributionControl(attributionControlDiv, map);
+			var attributionControl = new initAttributionControl(attributionControlDiv);
 			attributionControlDiv.index = 1;
 			attributionControlDiv.style['padding-bottom'] = '10px';
 			map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(attributionControlDiv, map)
@@ -417,15 +417,14 @@
 					data: {latitude: lat,
 						   longitude: lng,
 						   time: 180,
-							db_server_port: db_server_port}
+						   db_server_port: db_server_port}
 				}).done(function (result) {
-
 
 					// clear map of previous map features
 					map.data.forEach(function(feature) {
 						map.data.remove(feature);
 					})
-					// console.log("Area = " + Math.round(result.area / 1000000 * 100) / 100 + " km^2")
+					console.log("Area = " + Math.round(result.area / 1000000 * 100) / 100 + " km^2")
 
 					// ====================================================================================
 					// if an isochrone is created, then the area will always be greater than zero
@@ -492,8 +491,18 @@
 						polygon_buffer.forEachLatLng(function (point) { 
 							bounds.extend(new google.maps.LatLng(point.lat(), point.lng()));
 						});
-			            map.fitBounds(bounds); 
-			            alertify.success("Estimated Demographics</br>(2010 Census Block)</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
+
+						NElat = bounds.getNorthEast().lat();
+						NElng = bounds.getNorthEast().lng();
+						SWlat = bounds.getSouthWest().lat();
+						SWlng = bounds.getSouthWest().lng();
+						if (isNaN(NElat) || isNaN(NElng) || isNaN(SWlat) || isNaN(SWlng)) {
+							alertify.error("Error: unable to calculate buffer/geometry/demographics")
+						} else {
+				            map.fitBounds(bounds); 
+				            alertify.success("Estimated Demographics</br>(2010 Census Block)</br></br>" + "population: " + Math.round(result.pop).toLocaleString() + "</br>housing: " + Math.round(result.housing).toLocaleString())
+			        	}
+			        	map.setZoom(14)
 			            spinner.stop()
 		            }
 		            else alertify.warning("Unable to calculate demographics");
@@ -514,10 +523,10 @@
    	//////////////////////////////////////	
 	// Initializes search box
 	////////////////////////////////////////
-	function initAttributionControl(control, map) {
+	function initAttributionControl(control) {
 		var attribution = document.createElement('img');
 		attribution.id = 'attribution';
-		attribution.title = 'Credit: Route360°';
+		attribution.title = 'Route360°';
 		attribution.src = "/assets/route360_logo.svg";
 		attribution.width = "56";
 		attribution.height = "56";
