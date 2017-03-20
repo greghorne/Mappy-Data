@@ -7,9 +7,6 @@
 	<%= csrf_meta_tags %>
 	<%= alertify_flash %>
 
-	<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyDo0NtFEmgkNmZZwrxpDqyXLJDTor37EV8&libraries=drawing,places,geometry" type="text/javascript" >
-	</script>
-
 	<style type="text/css">
 	
 	 	html, body {
@@ -298,21 +295,28 @@
 	    		// scaleControl: true,
 	    		streetViewControl: false,
 	    		zoomControl: true,
-	    		mapTypeId: 'terrain'
+	    		mapTypeId: 'terrain',
+	    		disableDefaultUI: true,
+	    		mapTypeControlOptions: {
+              		style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+              		position: google.maps.ControlPosition.LEFT_BOTTOM
+          		}
   			});
 
 
 		  	(function() {
+
 		  		// drawing manager set up (drawing tools)
 		  		_myDrawingManager = new google.maps.drawing.DrawingManager({
 		  			drawingMode: google.maps.drawing.OverlayType.DEFAULT,
 		  			drawingControl: true,
 		  			drawingControlOptions: {
-		  			 	position: google.maps.ControlPosition.LEFT_TOP,
+		  			 	position: google.maps.ControlPosition.TOP_LEFT,
 		  				drawingModes: ['marker']
-		  				// drawingModes: ['polygon', 'circle', 'rectangle', 'marker']
+		  				//drawingModes: ['polygon', 'circle', 'rectangle', 'marker']
 		  			}
 		  		});
+
 		  		_myDrawingManager.setMap(map);
 			})();
 
@@ -669,6 +673,8 @@
 
 	</script>
 
+	<script src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyDo0NtFEmgkNmZZwrxpDqyXLJDTor37EV8&libraries=drawing,places,geometry" type="text/javascript" >
+	</script>
 
 </body>
 </html>
