@@ -39,7 +39,13 @@ class MapController < ApplicationController
 
     # determine if x,y intersects the states layer
     select = "SELECT tl_2016_us_state.gid FROM tl_2016_us_state, user_point WHERE user_point.id = $1 AND ST_Intersects(user_point.geom, tl_2016_us_state.geom);"
+start = Time.now    
     result = conn.query(select, [result[0]['id']])
+stop = Time.now
+puts "==============================="
+puts "Region time: " + (stop - start).to_s
+puts "==============================="
+puts 
 
     if (result.count > 0) 
       render :json => { result: true } 
@@ -199,7 +205,13 @@ class MapController < ApplicationController
                        'from tabblock_2010_pophu, ' + table_name.to_s + ' where ' + table_name.to_s + '.id = $1 and ST_INTERSECTS(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom)'
 
           conn = get_conn(db_server_port)
+start = Time.now
           result_db_query = conn.query(db_query, [row])
+stop = Time.now
+puts "==============================="
+puts "Buffer query: " + (stop - start).to_s
+puts "==============================="
+puts
 
           if table_name === "user_polygon"
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM ' + table_name.to_s + ' where id=$1;'
