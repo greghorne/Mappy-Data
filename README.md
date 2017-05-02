@@ -23,15 +23,7 @@
 - 2010 Census Block Data - Population, Housing Counts & Geographic information
 - PostgreSQL with PostGIS extension
 - Raspberry Pi 2 - PostgreSQL Server Host (see: <a href="https://github.com/greghorne/loadCensusBlocks" target="_blank">https://github.com/greghorne/loadCensusBlocks</a>)
-
+- Deployment: Heroku free dyno
 
 Deployment: https://mappydata.herokuapp.com
-
-
-
-Google Maps API / Isochrone (Route360.net) / Census Data / Ruby / Rails / JS / PostgreSQL / PostGIS
-
-
-
-
 
