@@ -26,5 +26,5 @@
 - Raspberry Pi 2 w/ Raspbian 8 (Jessie) ==> PostgreSQL Server Host 
 - Deployment: Heroku free dyno
 
-Deployment: <a href="http://www.mappydata.com" target="_blank">http://www.mappydata.com</a>
+Deployment: http://www.mappydata.com
 
