@@ -17,13 +17,13 @@
 
 *Tech Stack:*
 
-- Ruby 2.4.0
-- Rails 5.0.0
+- ruby 2.4.0p0 (2016-12-24 revision 57164) [x86_64-darwin16]
+- Rails 5.0.2
 - Google Maps API v3
 - REST Service (www.route360.net) to return an Isochrone (drive-time polygon)
 - 2010 Census Block Data - Population, Housing Counts & Geographic information
 - PostgreSQL with PostGIS extension
-- Raspberry Pi 2 - PostgreSQL Server Host (see: <a href="https://github.com/greghorne/loadCensusBlocks" target="_blank">https://github.com/greghorne/loadCensusBlocks</a>)
+- Raspberry Pi 2 w/ Raspbian 8 (Jessie) ==> PostgreSQL Server Host (see: https://github.com/greghorne/loadCensusBlocks)
 - Deployment: Heroku free dyno
 
 Deployment: <a href="http://www.mappydata.com" target="_blank">http://www.mappydata.com</a>
