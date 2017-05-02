@@ -9,10 +9,11 @@
 *What does this webpage do:*
 
 - Display a map in the browser.
-- The user can use the "maker" tool (upper left corner) to click on the map or type in an location information into the search box to specify a location.
+- The user can use the "marker" tool (upper left corner) to click on the map or type in location information into the search box to specify a location.
 - Only locations within the United States are supported.
 - A 3 minute isochrone (drive-time) polygon is then calculated using Route360 REST Services and is subsequently displayed onto the map.  
 - Demographic informaton that is calculated within the isochrone polygon is also displayed.  2010 Census Block data is used for the calculation and uniform distribution of data is assumed.
+- Click the '?' icon on the webpage for more information.
 
 *Tech Stack:*
 
@@ -25,5 +26,5 @@
 - Raspberry Pi 2 - PostgreSQL Server Host (see: <a href="https://github.com/greghorne/loadCensusBlocks" target="_blank">https://github.com/greghorne/loadCensusBlocks</a>)
 - Deployment: Heroku free dyno
 
-Deployment: https://mappydata.herokuapp.com
+Deployment: http://www.mappydata.com
 
