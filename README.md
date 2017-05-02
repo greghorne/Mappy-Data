@@ -10,7 +10,7 @@
 
 - Display a map in the browser.
 - The user can use the "maker" tool (upper left corner) or type in an address/location into the search box.
-- 
+- Gregory 
 
 *Tech Stack:*
 
