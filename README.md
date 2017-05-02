@@ -26,5 +26,5 @@
 - Raspberry Pi 2 - PostgreSQL Server Host (see: <a href="https://github.com/greghorne/loadCensusBlocks" target="_blank">https://github.com/greghorne/loadCensusBlocks</a>)
 - Deployment: Heroku free dyno
 
-Deployment: http://www.mappydata.com
+Deployment: <a href="http://www.mappydata.com" target="_blank">http://www.mappydata.com</a>
 
