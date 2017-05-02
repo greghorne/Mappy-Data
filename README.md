@@ -21,7 +21,7 @@
 - Rails 5.0.2
 - Google Maps API v3
 - REST Service (www.route360.net) to return an Isochrone (drive-time polygon)
-- 2010 Census Block Data - Population, Housing Counts & Geographic information
+- 2010 Census Block Data - Population Counts, Housing Counts & Geographic information
 - PostgreSQL with PostGIS extension (see: https://github.com/greghorne/loadCensusBlocks)
 - Raspberry Pi 2 w/ Raspbian 8 (Jessie) ==> PostgreSQL Server Host 
 - Deployment: Heroku free dyno
