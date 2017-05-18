@@ -120,6 +120,13 @@ puts
 
 
   def do_buffer(buffer, row, table_name_source, insert_table, db_server_port)
+
+    puts
+    puts buffer
+    puts row
+    puts table_name_source
+    puts insert_table
+    puts
     
     # create buffer on geom
     db_buffer = 'Select ST_Buffer(geom, $1) from ' + table_name_source.to_s + ' where id = $2'
@@ -134,15 +141,35 @@ puts
     buffer_geom_type = 'select ST_GeometryType($1)'
     result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
     polygon_type = result_buffer_geom_type[0]['st_geometrytype']
-    # puts
-    # puts "buffer type: " + polygon_type.to_s
-    # puts
+
+    puts
+    puts
+    puts "buffer type: " + polygon_type.to_s
     target_table = ""
     if polygon_type.to_s === "ST_Polygon"
       target_table = insert_table
     else
       target_table = table_name_source
+
+      # at this point the isochrone is not correct in that the "buffer" around the
+      # isochrone lines has resulted in a single obect multipolygon ==> meaning a
+      # single geometric object that is made up of multipolygon
+      #
+      # one could combine these multiple polygons into one object, that might be better
+      # but it still is mathematiacally incorrect
+      #
+      # I believe the error originates in the line work of the street files (my guess) where
+      # come streets might not be a consecutive line and have a small gap in it.
+      #
+      # at this time I choose not to combine the multipolygon object
+      #
+      result_multicount = conn.query('Select ST_NumGeometries($1)', [geometry])
+      puts "multipolygon n-count: " + result_multicount[0]['st_numgeometries'].to_s
+
     end
+    puts target_table
+    puts
+    puts
 
     # db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
     db_insert = 'insert into ' + target_table.to_s + ' (geom) Values($1) RETURNING id'
