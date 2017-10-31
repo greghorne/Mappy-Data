@@ -623,21 +623,22 @@
 		//////////////////////////////
 		// Change DB Server
 		//////////////////////////////
-		var changeDBServerUI = document.createElement('img');
-		changeDBServerUI.id = 'changeDBServerUI';
-		changeDBServerUI.title = 'Change DB Server';
-		changeDBServerUI.src = "/assets/database_refresh.png"
-		controlDiv.appendChild(changeDBServerUI);
+		// var changeDBServerUI = document.createElement('img');
+		// changeDBServerUI.id = 'changeDBServerUI';
+		// changeDBServerUI.title = 'Change DB Server';
+		// changeDBServerUI.src = "/assets/database_refresh.png";
+		// controlDiv.appendChild(changeDBServerUI);
 
-		changeDBServerUI.addEventListener('click', function() {
-		    if (db_server_port === 2345) { 
-		    	db_server_port = 2346;
-		    	alertify.alert("<center>MappyData</center>", "<center>PostgreSQL/PostGIS Database Server is now set to:</br></br><a href='https://www.raspberrypi.org/products/raspberry-pi-2-model-b/' target='_blank'>Raspberry Pi 2 - Raspbian</a> (slowest option)</br></br>(your phone is probably faster than this device)</center>");
-		    } else {
-		    	db_server_port = 2345;
-		    	alertify.alert("<center>MappyData</center>", "<center>PostgreSQL/PostGIS Database Server is now set to:</br></br><a href='https://www.zotac.com/us/product/mini_pcs/bi320-windows-81-bing-0' target='_blank'>Zotac BI320 - Ubuntu</a> (fastest option)<center>");
-		    }
-		});
+		// changeDBServerUI.addEventListener('click', function() {
+		//     if (db_server_port === 2345) { 
+		//     	db_server_port = 2346;
+		//     	alertify.alert("<center>MappyData</center>", "<center>PostgreSQL/PostGIS Database Server is now set to:</br></br><a href='https://www.raspberrypi.org/products/raspberry-pi-2-model-b/' target='_blank'>Raspberry Pi 2 - Raspbian</a> (slowest option)</br></br>(your phone is probably faster than this device)</center>");
+		//     } else {
+		//     	db_server_port = 2345;
+		//     	alertify.alert("<center>MappyData</center>", "<center>PostgreSQL/PostGIS Database Server is now set to:</br></br><a href='https://www.zotac.com/us/product/mini_pcs/bi320-windows-81-bing-0' target='_blank'>Zotac BI320 - Ubuntu</a> (fastest option)<center>");
+		//     }
+		// });
+
 		//////////////////////////////
 
 		//////////////////////////////

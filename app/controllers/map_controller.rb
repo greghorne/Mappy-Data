@@ -87,7 +87,10 @@ puts
     
     # r360 rest call
     response_r360 = RestClient.get r360_url_string
-
+    puts "-----------------------"
+    puts response_r360.code
+    puts "trace: " + response_r360    
+    puts "-----------------------"
     # polygon geometry and area (sq metres)
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
@@ -165,6 +168,9 @@ puts
       #
       result_multicount = conn.query('Select ST_NumGeometries($1)', [geometry])
       puts "multipolygon n-count: " + result_multicount[0]['st_numgeometries'].to_s
+
+      # SELECT gid, n, ST_GeometryN(the_geom, n) FROM sometable CROSS JOIN generate_series(1,100) n
+      # WHERE n <= ST_NumGeometries(the_geom);
 
     end
     puts target_table
