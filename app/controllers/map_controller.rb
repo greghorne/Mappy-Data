@@ -3,6 +3,8 @@ require 'pg'
 # require 'rgeo-geo_json'
 require 'json'
 
+TRACE = false
+
 class MapController < ApplicationController
 
   def get_conn(db_server_port)
@@ -20,7 +22,6 @@ class MapController < ApplicationController
       :user => user,
       :password => password
     )
-    # puts "DB Port: " + port.to_s
     return conn
   end
 
@@ -39,13 +40,21 @@ class MapController < ApplicationController
 
     # determine if x,y intersects the states layer
     select = "SELECT tl_2016_us_state.gid FROM tl_2016_us_state, user_point WHERE user_point.id = $1 AND ST_Intersects(user_point.geom, tl_2016_us_state.geom);"
-start = Time.now    
+
+    if TRACE
+      start = Time.now    
+    end
     result = conn.query(select, [result[0]['id']])
-stop = Time.now
-puts "==============================="
-puts "Region time: " + (stop - start).to_s
-puts "==============================="
-puts 
+    if TRACE 
+      stop = Time.now
+    end
+
+    if TRACE 
+      puts "==============================="
+      puts "Region time: " + (stop - start).to_s
+      puts "==============================="
+      puts
+    end 
 
     if (result.count > 0) 
       render :json => { result: true } 
@@ -84,13 +93,15 @@ puts
                   ",'id':'Mappy','tm':{'car':{}}}],'polygon':" +
                   "{'serializer':'geojson','srid':'4326'," +
                   "'values':[" + time.to_s + "]}}&key=" + r360_key.to_s
-    
+
     # r360 rest call
     response_r360 = RestClient.get r360_url_string
-    puts "-----------------------"
-    puts response_r360.code
-    puts "trace: " + response_r360    
-    puts "-----------------------"
+    if TRACE 
+      puts "-----------------------"
+      puts response_r360.code
+      puts "trace: " + response_r360    
+      puts "-----------------------"
+    end
     # polygon geometry and area (sq metres)
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
@@ -124,12 +135,13 @@ puts
 
   def do_buffer(buffer, row, table_name_source, insert_table, db_server_port)
 
-    puts
-    puts buffer
-    puts row
-    puts table_name_source
-    puts insert_table
-    puts
+    if TRACE
+      puts buffer
+      puts row
+      puts table_name_source
+      puts insert_table
+      puts
+    end
     
     # create buffer on geom
     db_buffer = 'Select ST_Buffer(geom, $1) from ' + table_name_source.to_s + ' where id = $2'
@@ -145,9 +157,10 @@ puts
     result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
     polygon_type = result_buffer_geom_type[0]['st_geometrytype']
 
-    puts
-    puts
-    puts "buffer type: " + polygon_type.to_s
+    if TRACE 
+      puts "buffer type: " + polygon_type.to_s
+    end
+
     target_table = ""
     if polygon_type.to_s === "ST_Polygon"
       target_table = insert_table
@@ -167,22 +180,21 @@ puts
       # at this time I choose not to combine the multipolygon object
       #
       result_multicount = conn.query('Select ST_NumGeometries($1)', [geometry])
-      puts "multipolygon n-count: " + result_multicount[0]['st_numgeometries'].to_s
+      if TRACE 
+        puts "multipolygon n-count: " + result_multicount[0]['st_numgeometries'].to_s
+      end
 
       # SELECT gid, n, ST_GeometryN(the_geom, n) FROM sometable CROSS JOIN generate_series(1,100) n
       # WHERE n <= ST_NumGeometries(the_geom);
 
     end
-    puts target_table
-    puts
-    puts
+    if TRACE 
+      puts target_table
+    end
 
     # db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
     db_insert = 'insert into ' + target_table.to_s + ' (geom) Values($1) RETURNING id'
     result_db_insert = conn.query(db_insert,[geometry])
-    # puts
-    # puts "target_table: " + target_table.to_s
-    # puts
 
     conn.close
 
@@ -238,13 +250,18 @@ puts
                        'from tabblock_2010_pophu, ' + table_name.to_s + ' where ' + table_name.to_s + '.id = $1 and ST_INTERSECTS(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom)'
 
           conn = get_conn(db_server_port)
-start = Time.now
+
+          if TRACE 
+            start = Time.now
+          end
           result_db_query = conn.query(db_query, [row])
-stop = Time.now
-puts "==============================="
-puts "Buffer query: " + (stop - start).to_s
-puts "==============================="
-puts
+          if TRACE 
+            stop = Time.now
+            puts "==============================="
+            puts "Buffer query: " + (stop - start).to_s
+            puts "==============================="
+            puts
+          end
 
           if table_name === "user_polygon"
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM ' + table_name.to_s + ' where id=$1;'
