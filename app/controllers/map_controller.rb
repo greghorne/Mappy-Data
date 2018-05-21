@@ -15,7 +15,16 @@ class MapController < ApplicationController
     user      = ENV['MAPPY_DB_USER']
     password  = ENV['MAPPY_DB_PASSWORD']
     
-    conn = PGconn.open(
+    if TRACE
+      puts host
+      puts dbname
+      puts port
+      puts user
+      puts password
+    end
+
+    # PGconn.open seems to have quit working with Gem update 
+    conn = PG::Connection.open(
       :host => host,
       :dbname => dbname,
       :port => port,
@@ -31,8 +40,13 @@ class MapController < ApplicationController
     lat = params[:lat].to_f
     lng = params[:lng].to_f
     db_server_port = params[:db_server_port].to_i
-
+puts "here"
     conn = get_conn(db_server_port)
+    puts conn
+puts "here1"
+    if TRACE
+      puts conn
+    end
 
     # insert x,y into table
     insert = "insert into user_point (name, geom) VALUES ('', ST_GeomFromText('Point(" + lng.to_s + " " + lat.to_s + ")', 4269)) RETURNING id"
@@ -93,6 +107,9 @@ class MapController < ApplicationController
                   ",'id':'Mappy','tm':{'car':{}}}],'polygon':" +
                   "{'serializer':'geojson','srid':'4326'," +
                   "'values':[" + time.to_s + "]}}&key=" + r360_key.to_s
+    if TRACE
+      puts r360_url_string
+    end
 
     # r360 rest call
     response_r360 = RestClient.get r360_url_string
