@@ -9,7 +9,7 @@ end
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '~> 5.0.2'
 # Use Puma as the app server
-gem 'puma', '~> 3.0'
+# gem 'puma', '~> 3.0'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5.0'
 # Use Uglifier as compressor for JavaScript assets
@@ -38,6 +38,8 @@ gem 'pg'
 gem 'json'
 # gem 'rgeo/geo_json'
 gem 'alertifyjs-rails'
+gem 'thin'
+gem 'listen', '~> 3.0.5'
 
 
 group :development, :test do
