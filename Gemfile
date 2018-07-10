@@ -39,7 +39,6 @@ gem 'json'
 # gem 'rgeo/geo_json'
 gem 'alertifyjs-rails'
 gem 'thin'
-gem 'listen', '~> 3.0.5'
 
 
 group :development, :test do
