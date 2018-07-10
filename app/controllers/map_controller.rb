@@ -2,7 +2,7 @@ require 'rest-client'
 require 'pg'
 # require 'rgeo-geo_json'
 require 'json'
-
+require 'benchmark'
 TRACE = false
 
 class MapController < ApplicationController
@@ -15,13 +15,11 @@ class MapController < ApplicationController
     user      = ENV['MAPPY_DB_USER']
     password  = ENV['MAPPY_DB_PASSWORD']
     
-    if TRACE
-      puts host
-      puts dbname
-      puts port
-      puts user
-      puts password
-    end
+    # puts host
+    # puts dbname
+    # puts port
+    # puts user
+    # puts password
 
     # PGconn.open seems to have quit working with Gem update 
     conn = PG::Connection.open(
@@ -31,6 +29,8 @@ class MapController < ApplicationController
       :user => user,
       :password => password
     )
+    
+
     return conn
   end
 
@@ -40,13 +40,8 @@ class MapController < ApplicationController
     lat = params[:lat].to_f
     lng = params[:lng].to_f
     db_server_port = params[:db_server_port].to_i
-puts "here"
+
     conn = get_conn(db_server_port)
-    puts conn
-puts "here1"
-    if TRACE
-      puts conn
-    end
 
     # insert x,y into table
     insert = "insert into user_point (name, geom) VALUES ('', ST_GeomFromText('Point(" + lng.to_s + " " + lat.to_s + ")', 4269)) RETURNING id"
@@ -54,21 +49,7 @@ puts "here1"
 
     # determine if x,y intersects the states layer
     select = "SELECT tl_2016_us_state.gid FROM tl_2016_us_state, user_point WHERE user_point.id = $1 AND ST_Intersects(user_point.geom, tl_2016_us_state.geom);"
-
-    if TRACE
-      start = Time.now    
-    end
     result = conn.query(select, [result[0]['id']])
-    if TRACE 
-      stop = Time.now
-    end
-
-    if TRACE 
-      puts "==============================="
-      puts "Region time: " + (stop - start).to_s
-      puts "==============================="
-      puts
-    end 
 
     if (result.count > 0) 
       render :json => { result: true } 
@@ -107,25 +88,16 @@ puts "here1"
                   ",'id':'Mappy','tm':{'car':{}}}],'polygon':" +
                   "{'serializer':'geojson','srid':'4326'," +
                   "'values':[" + time.to_s + "]}}&key=" + r360_key.to_s
-    if TRACE
-      puts r360_url_string
-    end
 
     # r360 rest call
+    start = Time.now
     response_r360 = RestClient.get r360_url_string
-    if TRACE 
-      puts "-----------------------"
-      puts response_r360.code
-      puts "trace: " + response_r360    
-      puts "-----------------------"
-    end
+    puts "===> response_r360 (drive polygon api call): " + (Time.now - start).to_s
+    puts ""
+
     # polygon geometry and area (sq metres)
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
-
-    # puts ""
-    # puts "R360 Geom = " + geometry["type"].to_s
-    # puts ""
 
     # stringify JSON object then a couple of minor mainpulations for preparing to use in a db insert statement
     isochrone_r360 = geometry.to_s.gsub('"', '\'').gsub('=>', ':')
@@ -152,71 +124,60 @@ puts "here1"
 
   def do_buffer(buffer, row, table_name_source, insert_table, db_server_port)
 
-    if TRACE
-      puts buffer
-      puts row
-      puts table_name_source
-      puts insert_table
-      puts
-    end
-    
     # create buffer on geom
     db_buffer = 'Select ST_Buffer(geom, $1) from ' + table_name_source.to_s + ' where id = $2'
 
     conn = get_conn(db_server_port)
+
+    start = Time.now
     result_db_buffer = conn.query(db_buffer, [buffer, row])
+    puts "===> result_db_buffer (buffer creation on iso): " + (Time.now - start).to_s
+    puts ""
 
     # retrieve buffered geometry
     geometry = result_db_buffer[0]['st_buffer']
 
-    # check the buffer geometry type; currently we are needing a polygon
+    # check the buffer geometry type
     buffer_geom_type = 'select ST_GeometryType($1)'
     result_buffer_geom_type = conn.query(buffer_geom_type, [geometry])
     polygon_type = result_buffer_geom_type[0]['st_geometrytype']
 
-    if TRACE 
-      puts "buffer type: " + polygon_type.to_s
-    end
-
+    # is it a POLYGON or MULTI_POLYGON?
     target_table = ""
     if polygon_type.to_s === "ST_Polygon"
+      # it is a POLYGON
       target_table = insert_table
     else
+      # it is a MULTI_POLYGON
       target_table = table_name_source
 
+      #
       # at this point the isochrone is not correct in that the "buffer" around the
       # isochrone lines has resulted in a single obect multipolygon ==> meaning a
-      # single geometric object that is made up of multipolygon
+      # single geometric object that is made up of more than polygon
       #
       # one could combine these multiple polygons into one object, that might be better
-      # but it still is mathematiacally incorrect
+      # but it still is geospatially incorrect as far as I know
       #
-      # I believe the error originates in the line work of the street files (my guess) where
-      # come streets might not be a consecutive line and have a small gap in it.
+      # I believe the multipe polygons originates in the line work of the street files (my guess) 
+      # where some streets might not be a consecutive line and have a small gap in it
       #
-      # at this time I choose not to combine the multipolygon object
+      # at this time I choose not to combine the multipolygon object into a single polygon and 
+      # thus will insert it into a table for multipolygons 
+      #
+      # the results would be the same for the finalencalculation anyway
       #
       result_multicount = conn.query('Select ST_NumGeometries($1)', [geometry])
-      if TRACE 
-        puts "multipolygon n-count: " + result_multicount[0]['st_numgeometries'].to_s
-      end
-
-      # SELECT gid, n, ST_GeometryN(the_geom, n) FROM sometable CROSS JOIN generate_series(1,100) n
-      # WHERE n <= ST_NumGeometries(the_geom);
 
     end
-    if TRACE 
-      puts target_table
-    end
 
-    # db_insert = 'insert into ' + insert_table.to_s + ' (geom) Values($1) RETURNING id'
     db_insert = 'insert into ' + target_table.to_s + ' (geom) Values($1) RETURNING id'
     result_db_insert = conn.query(db_insert,[geometry])
 
     conn.close
 
     # inserted row number
-    row   = result_db_insert.first['id']
+    row = result_db_insert.first['id']
 
     return_hash = { :success          => true,
                     :table_row_number => row,
@@ -258,8 +219,49 @@ puts "here1"
 
           # spatial select to calculate demographics
           row         = parsed["table_row_number"]
-          # table_name  = "user_polygon"
           table_name  = parsed["table_name"]
+
+
+          # ===========================
+          #
+          # Below was an attempt to see if a speed up of a query could be achieve.
+          # It didn't work    
+          #
+          # ===========================
+          # create mbr of buffer geom into temp table
+          # puts "session id: " + request.session_options[:id].to_s
+          # db_query_mbr = 'select ST_Envelope(geom) as geom into temp_table_mbr from ' + table_name.to_s + ' where ' + table_name.to_s  + '.id = $1;'
+          # puts db_query_mbr
+    
+          # conn = get_conn(db_server_port)
+    
+          # db_query_drop_table = 'drop table if exists temp_table_mbr;'
+          # conn.query(db_query_drop_table)
+          # results_db_mbr = conn.query(db_query_mbr, [row])
+          # puts results_db_mbr
+    
+          # db_query_drop_table = 'drop table if exists temp_table_mbr_blocks;'
+          # db_query_mbr_blocks = 'select tabblock_2010_pophu.* into temp_table_mbr_blocks from tabblock_2010_pophu, temp_table_mbr where ST_INTERSECTS(temp_table_mbr.geom, tabblock_2010_pophu.geom)' 
+          # puts 
+          # puts db_query_mbr_blocks
+          # puts 
+          # conn.query(db_query_drop_table)
+          # results_db_mbr_blocks = conn.query(db_query_mbr_blocks)
+          # puts results_db_mbr_blocks
+          # conn.close
+
+
+          # db_query = 'select sum(housing10) housing10,' + 
+          #              'sum(st_area(st_intersection(' + table_name.to_s + '.geom, temp_table_mbr_blocks.geom))/st_area(temp_table_mbr_blocks.geom) * housing10) as housing_calc, ' +
+          #              'sum(pop10) as pop10,' +
+          #              'sum(st_area(st_intersection(' + table_name.to_s + '.geom, temp_table_mbr_blocks.geom))/st_area(temp_table_mbr_blocks.geom) * pop10) as pop_calc ' + 
+          #              'from tabblock_2010_pophu, ' + table_name.to_s + ' where ' + table_name.to_s + '.id = $1 and ST_INTERSECTS(' + table_name.to_s + '.geom, temp_table_mbr_blocks.geom)'
+          # ===========================
+
+
+          #
+          # the following query is by far the slowest part of the calculations
+          #
           db_query = 'select sum(housing10) housing10,' + 
                        'sum(st_area(st_intersection(' + table_name.to_s + '.geom, tabblock_2010_pophu.geom))/st_area(tabblock_2010_pophu.geom) * housing10) as housing_calc, ' +
                        'sum(pop10) as pop10,' +
@@ -268,25 +270,21 @@ puts "here1"
 
           conn = get_conn(db_server_port)
 
-          if TRACE 
-            start = Time.now
-          end
+          start = Time.now
           result_db_query = conn.query(db_query, [row])
-          if TRACE 
-            stop = Time.now
-            puts "==============================="
-            puts "Buffer query: " + (stop - start).to_s
-            puts "==============================="
-            puts
-          end
+          puts "===> result_db_query (buffer query on blocks): " + (Time.now - start).to_s
+          puts ""
 
           if table_name === "user_polygon"
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM ' + table_name.to_s + ' where id=$1;'
           else
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),16) FROM ' + table_name.to_s + ' where id=$1;'
           end
-          result_db_query_buffer = conn.query(db_query_buffer, [row])
 
+          start = Time.now
+          result_db_query_buffer = conn.query(db_query_buffer, [row])
+          puts "===> result_db_query_buffer (retrieval of final buffer): " + (Time.now - start).to_s
+          puts
           conn.close
 
           coordinates_string = result_db_query_buffer[0]['substring']
