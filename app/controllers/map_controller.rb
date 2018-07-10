@@ -4,8 +4,7 @@ require 'pg'
 require 'json'
 require 'benchmark'
 
-TRACE = ENV['TRACE'] || false
-TRACE = TRUE
+TRACE = false
 
 class MapController < ApplicationController
 
@@ -86,8 +85,10 @@ class MapController < ApplicationController
                   "'values':[" + time.to_s + "]}}&key=" + r360_key.to_s
 
     # r360 rest call
-    start = Time.now if TRACE
-    puts TRACE
+    if TRACE
+      puts TRACE
+      start = Time.now
+    end
     response_r360 = RestClient.get r360_url_string
     if TRACE
       puts ""
@@ -129,11 +130,15 @@ class MapController < ApplicationController
 
     conn = get_conn(db_server_port)
 
-    start = Time.now if TRACE
+    if TRACE
+      start = Time.now
+    end
     result_db_buffer = conn.query(db_buffer, [buffer, row])
-    puts ""
-    puts "===> result_db_buffer (buffer creation on iso): " + (Time.now - start).to_s
-    puts ""
+    if TRACE
+      puts ""
+      puts "===> result_db_buffer (buffer creation on iso): " + (Time.now - start).to_s
+      puts ""
+    end
 
     # retrieve buffered geometry
     geometry = result_db_buffer[0]['st_buffer']
@@ -271,7 +276,9 @@ class MapController < ApplicationController
 
           conn = get_conn(db_server_port)
 
-          start = Time.now if TRACE
+          if TRACE
+            start = Time.now
+          end
           result_db_query = conn.query(db_query, [row])
           if TRACE
             puts ""
@@ -285,7 +292,9 @@ class MapController < ApplicationController
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),16) FROM ' + table_name.to_s + ' where id=$1;'
           end
 
-          start = Time.now if TRACE
+          if TRACE
+            start = Time.now
+          end
           result_db_query_buffer = conn.query(db_query_buffer, [row])
           if TRACE
             puts
