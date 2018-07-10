@@ -15,12 +15,6 @@ class MapController < ApplicationController
     port      = db_server_port
     user      = ENV['MAPPY_DB_USER']
     password  = ENV['MAPPY_DB_PASSWORD']
-    
-    # puts host
-    # puts dbname
-    # puts port
-    # puts user
-    # puts password
 
     # PGconn.open seems to have quit working with Gem update 
     conn = PG::Connection.open(
@@ -91,10 +85,13 @@ class MapController < ApplicationController
                   "'values':[" + time.to_s + "]}}&key=" + r360_key.to_s
 
     # r360 rest call
-    start = Time.now
+    start = Time.now if TRACE
     response_r360 = RestClient.get r360_url_string
-    puts "===> response_r360 (drive polygon api call): " + (Time.now - start).to_s
-    puts ""
+    if TRACE
+      puts ""
+      puts "===> response_r360 (drive polygon api call): " + (Time.now - start).to_s
+      puts ""
+    end
 
     # polygon geometry and area (sq metres)
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
@@ -130,8 +127,9 @@ class MapController < ApplicationController
 
     conn = get_conn(db_server_port)
 
-    start = Time.now
+    start = Time.now if TRACE
     result_db_buffer = conn.query(db_buffer, [buffer, row])
+    puts ""
     puts "===> result_db_buffer (buffer creation on iso): " + (Time.now - start).to_s
     puts ""
 
@@ -271,10 +269,13 @@ class MapController < ApplicationController
 
           conn = get_conn(db_server_port)
 
-          start = Time.now
+          start = Time.now if TRACE
           result_db_query = conn.query(db_query, [row])
-          puts "===> result_db_query (buffer query on blocks): " + (Time.now - start).to_s
-          puts ""
+          if TRACE
+            puts ""
+            puts "===> result_db_query (buffer query on blocks): " + (Time.now - start).to_s
+            puts ""
+          end
 
           if table_name === "user_polygon"
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),10) FROM ' + table_name.to_s + ' where id=$1;'
@@ -282,10 +283,14 @@ class MapController < ApplicationController
             db_query_buffer = 'SELECT substring(left(St_astext(geom),-2),16) FROM ' + table_name.to_s + ' where id=$1;'
           end
 
-          start = Time.now
+          start = Time.now if TRACE
           result_db_query_buffer = conn.query(db_query_buffer, [row])
-          puts "===> result_db_query_buffer (retrieval of final buffer): " + (Time.now - start).to_s
-          puts
+          if TRACE
+            puts
+            puts "===> result_db_query_buffer (retrieval of final buffer): " + (Time.now - start).to_s
+            puts
+          end
+
           conn.close
 
           coordinates_string = result_db_query_buffer[0]['substring']
