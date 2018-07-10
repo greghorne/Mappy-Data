@@ -5,6 +5,7 @@ require 'json'
 require 'benchmark'
 
 TRACE = ENV['TRACE'] || false
+TRACE = TRUE
 
 class MapController < ApplicationController
 
@@ -86,6 +87,7 @@ class MapController < ApplicationController
 
     # r360 rest call
     start = Time.now if TRACE
+    puts TRACE
     response_r360 = RestClient.get r360_url_string
     if TRACE
       puts ""
