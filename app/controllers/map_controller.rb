@@ -3,7 +3,8 @@ require 'pg'
 # require 'rgeo-geo_json'
 require 'json'
 require 'benchmark'
-TRACE = false
+
+TRACE = ENV['TRACE'] || false
 
 class MapController < ApplicationController
 
@@ -224,7 +225,7 @@ class MapController < ApplicationController
 
           # ===========================
           #
-          # Below was an attempt to see if a speed up of a query could be achieve.
+          # Below was an attempt to see if a speed up of a query could be achieved.
           # It didn't work    
           #
           # ===========================
