@@ -25,7 +25,6 @@ class MapController < ApplicationController
       :password => password
     )
     
-puts conn
     return conn
   end
 
@@ -37,8 +36,6 @@ puts conn
     db_server_port = params[:db_server_port].to_i
 
     conn = get_conn(db_server_port)
-
-  puts conn
 
     # insert x,y into table
     insert = "insert into user_point (name, geom) VALUES ('', ST_GeomFromText('Point(" + lng.to_s + " " + lat.to_s + ")', 4269)) RETURNING id"
