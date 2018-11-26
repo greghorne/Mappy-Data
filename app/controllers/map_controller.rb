@@ -38,6 +38,8 @@ class MapController < ApplicationController
 
     conn = get_conn(db_server_port)
 
+  puts conn
+
     # insert x,y into table
     insert = "insert into user_point (name, geom) VALUES ('', ST_GeomFromText('Point(" + lng.to_s + " " + lat.to_s + ")', 4269)) RETURNING id"
     result = conn.query(insert)
@@ -90,6 +92,8 @@ class MapController < ApplicationController
       start = Time.now
     end
     response_r360 = RestClient.get r360_url_string
+puts "====="
+puts r360_url_string
     if TRACE
       puts ""
       puts "===> response_r360 (drive polygon api call): " + (Time.now - start).to_s
@@ -100,8 +104,14 @@ class MapController < ApplicationController
     geometry  = JSON.parse(response_r360)['data']['features'][0]['geometry']
     area      = JSON.parse(response_r360)['data']['features'][0]['properties']['area']
 
+puts "====="
+puts geometry
+
     # stringify JSON object then a couple of minor mainpulations for preparing to use in a db insert statement
     isochrone_r360 = geometry.to_s.gsub('"', '\'').gsub('=>', ':')
+
+puts "====="
+puts isochrone_r360
 
     # insert query string
     db_insert = "insert into " + insert_table.to_s + "  (geom) VALUES (ST_SetSRID(ST_GeomFromGeoJSON($1), 4269)) RETURNING id"
