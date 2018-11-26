@@ -25,7 +25,7 @@ class MapController < ApplicationController
       :password => password
     )
     
-
+puts conn
     return conn
   end
 
