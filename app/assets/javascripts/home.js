@@ -217,8 +217,6 @@
 					url: "http://zotac1.ddns.net:8000/v1/intersects-usa/" + lng + "/" + lat
 				}).done(function (result) {
 					var intersects = JSON.parse(result)
-					console.log(intersects)
-					console.log(intersects.intersects)
 
 					if (intersects.intersects === true) {
 
