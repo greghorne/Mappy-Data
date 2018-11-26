@@ -208,6 +208,7 @@
 		    function doIsochrone(lat, lng, db_server_port) {
 
 				var spinner = new Spinner(opts).spin(target);
+
 				$.ajax({
 					url:  "/check_region.json",
 					type: "POST",
