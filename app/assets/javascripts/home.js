@@ -209,12 +209,12 @@
 
 				var spinner = new Spinner(opts).spin(target);
 
-				// $.ajax({
-				// 	url:  "/check_region.json",
-				// 	type: "POST",
-				// 	data: {lat: lat, lng: lng, db_server_port: db_server_port}
 				$.ajax({
-					url: "http://zotac1.ddns.net:8000/v1/intersects-usa/" + lng + "/" + lat
+					url:  "/check_region.json",
+					type: "POST",
+					data: {lat: lat, lng: lng, db_server_port: db_server_port}
+				// $.ajax({
+				// 	url: "http://zotac1.ddns.net:8000/v1/intersects-usa/" + lng + "/" + lat
 				}).done(function (result) {
 					var intersects = JSON.parse(result)
 
