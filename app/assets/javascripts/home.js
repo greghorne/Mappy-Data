@@ -211,7 +211,7 @@
 
 				$.ajax({
 					url:  "/check_region.json",
-					type: "GET",
+					type: "post",
 					data: {lat: lat, lng: lng, db_server_port: db_server_port}
 				// $.ajax({
 				// 	url: "http://zotac1.ddns.net:8000/v1/intersects-usa/" + lng + "/" + lat
