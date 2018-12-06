@@ -26,5 +26,5 @@
 - Raspberry Pi 2 w/ Raspbian 8 (Jessie) ==> PostgreSQL Server Host 
 - Deployment: Docker Container on Raspberry Pi
 
-Deployment: http://zotac1.ddns.net
+Deployment: http://zotac1.ddns.net:3300
 
