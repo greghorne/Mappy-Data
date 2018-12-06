@@ -211,7 +211,8 @@
 
 				$.ajax({
 					url:  "/check_region.json",
-					type: "post",
+					// beforeSend: function(xhr) {xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))},
+					type: "GET",
 					data: {lat: lat, lng: lng, db_server_port: db_server_port}
 				// $.ajax({
 				// 	url: "http://zotac1.ddns.net:8000/v1/intersects-usa/" + lng + "/" + lat
@@ -236,7 +237,8 @@
 
 						$.ajax({
 							url:  "/create_isochrone.json",
-							type: "POST",
+							// beforeSend: function(xhr) {xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))},
+							type: "GET",
 							data: {latitude: lat,
 								   longitude: lng,
 								   time: 180,
