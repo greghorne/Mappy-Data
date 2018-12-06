@@ -24,7 +24,7 @@
 - 2010 Census Block Data - Population Counts, Housing Counts & Geographic information
 - PostgreSQL with PostGIS extension (see: https://github.com/greghorne/loadCensusBlocks)
 - Raspberry Pi 2 w/ Raspbian 8 (Jessie) ==> PostgreSQL Server Host 
-- Deployment: Heroku free dyno
+- Deployment: Docker Container on Raspberry Pi
 
-Deployment: http://www.mappydata.com
+Deployment: http://zotac1.ddns.net
 
